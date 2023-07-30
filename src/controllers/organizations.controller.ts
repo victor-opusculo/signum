@@ -39,4 +39,23 @@ export class organizations extends BaseController
             this._messages.push(String(err));
         }
     }
+
+    public async viewprofile()
+    {
+        this._pageTitle = "Singum | Ver perfil de organização";
+        this._pageSubtitle = "Ver perfil de organização";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+
+        try
+        {
+            const org = await new Organization({ id: orgId }).getSingle(connection()) as Organization;
+            this.pageData.orgObj = org;
+        }
+        catch (err)
+        {
+            this._messages.push(String(err));
+        }
+    }
 }

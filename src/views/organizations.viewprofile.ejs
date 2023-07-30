@@ -1,0 +1,23 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+
+<% if (orgObj) { %>
+<div class="frame">
+    <% if (orgObj.get("logo_filename")) { %>
+        <div class="h-52 text-center">
+            <img class="inline-block max-h-[100%] w-auto" src="/uploads/organizations/<%= orgObj.get('logo_filename') %>" alt="Foto de logotipo"/>
+        </div>
+    <% } else { %>
+        <p class="text-center">Sem logo</p>
+    <% } %>
+
+    <%- include('components/ext_label', { props: { label: "Nome", labelBold:true, children: helperFns.escapeHtml(orgObj.get("name") ?? '') }}) %>
+    <%- include('components/ext_label', { props: { label: "Email", labelBold:true, children: helperFns.escapeHtml(orgObj.get("email") ?? '')}}) %>
+
+    <% const otherInfos = orgObj.decodeOtherInfos(); %>
+    <% for (const info of otherInfos) { %>
+        <%- include('components/ext_label', { props: { label: info.label, labelBold:true, children: helperFns.escapeHtml(info.value ?? '')}}) %>
+    <% } %>
+
+</div>
+
+<% } %>

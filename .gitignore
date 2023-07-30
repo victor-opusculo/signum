@@ -5,7 +5,6 @@
 !/public/uploads/interpreters/.gitkeep
 !/public/uploads/organizations/.gitkeep
 
-/public/twoutput.css
 /dist/**/*
 
 .env.local
