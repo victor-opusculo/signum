@@ -1,0 +1,20 @@
+<% 
+props.lineBreak ??= false;
+props.labelBold ??= false;
+props.label ??= "";
+props.children ??= "";
+props.reverse ??= false;
+props.escape ??= false;
+%>
+
+<label class="flex m-2 <%= props.lineBreak ? 'flex-col' : 'flex-row items-center' %>">
+    <% if (!props.reverse) { %>
+    <span class="shrink mr-2 text-base <%= props.labelBold ? 'font-bold' : '' %>">
+        <%= props.label %>: 
+    </span>
+    <span class="grow text-base flex flex-row flex wrap"><%- props.children %></span>
+    <% } else { %>
+        <span class="text-base"><%- props.children %></span>
+        <span class="ml-2 text-base <%= props.labelBold ? 'font-bold' : '' %>"><%- props.label %></span>
+    <% } %>
+</label>

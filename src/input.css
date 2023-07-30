@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base
+{
+    * { font-family: sans-serif; }
+    h1 { @apply text-center text-2xl font-bold mb-4 }
+    h2 { @apply text-center text-xl font-bold mb-2 }
+    h3 { @apply text-center text-base font-bold my-2 }
+
+    table { @apply w-full }
+    table tbody tr { @apply border-b border-neutral-300 }
+    table th { @apply text-center text-[1.2rem] font-bold }
+    table td { @apply text-left text-base }
+
+    hr { @apply border-b border-neutral-300 my-4 }
+}
+
+@layer components
+{
+    .link { @apply text-base text-sky-700 mx-2 hover:text-sky-800 hover:underline active:text-sky-900 }
+
+    input[type='text'], input[type='password'], input[type='search'], input[type='number'], input[type='email'], input[type='date'], input[type='time'], select, textarea { @apply border rounded border-neutral-500 p-1 }
+    .btn { @apply rounded border bg-sky-700 border-sky-800 text-white p-2 px-6 hover:bg-sky-800 active:bg-sky-900 }
+
+    .frame { @apply p-4 w-full bg-white rounded border border-neutral-300 }
+
+    .pagination { @apply block my-2 list-none text-base ml-4 }
+    .pagination li { @apply inline mx-1 }
+    .pagination .currentPageNum { @apply font-bold }
+
+    .fieldset { @apply border border-2 rounded-md p-2 m-2 }
+
+    .responsibleTable { @apply block lg:table w-full }
+    .responsibleTable thead { @apply block lg:table-header-group }
+    .responsibleTable th { @apply absolute hidden lg:table-cell lg:relative }
+    .responsibleTable tbody { @apply block lg:table-row-group }
+    .responsibleTable tr { @apply block py-4 lg:py-2 lg:table-row }
+    .responsibleTable td { @apply block lg:table-cell before:font-bold before:content-[attr(data-th)':_'] lg:before:content-none }
+
+    .panelButton { @apply rounded border border-neutral-600 bg-neutral-300 text-black hover:bg-neutral-400 active:bg-neutral-400 px-4 py-2 m-2 }
+}
+
+* { box-sizing: border-box; }
+
+:root 
+{
+    --foreground-rgb: 0, 0, 0;
+    --background-rgb: 240, 240, 240;
+    font-size: 19px; 
+}
+
+*::selection
+{
+    @apply bg-amber-600 text-white
+}
+
+body 
+{
+    color: rgb(var(--foreground-rgb));
+    background-color: rgb(var(--background-rgb));
+}
+
+:root[data-font-size='1'] { font-size: 21px !important; }
+:root[data-font-size='2'] { font-size: 23px !important; }
+:root[data-font-size='3'] { font-size: 25px !important; }
+
+body[data-high-contrast], body[data-high-contrast] *:not(svg, img, a) { @apply !bg-black };
+body[data-high-contrast], body[data-high-contrast] svg { @apply fill-white };
+body[data-high-contrast], body[data-high-contrast] * { @apply !text-white };
+
+main
+{
+    margin-top: 1em;
+    padding: 0.5em;
+}
+
+#growableToFooter { min-height: calc(100vh - 80px); }
+
+footer 
+{
+    height: 80px;
+    @apply bg-slate-800 text-white p-4 text-center
+}
+

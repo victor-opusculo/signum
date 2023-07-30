@@ -1,0 +1,20 @@
+<script>
+    Signum.Layout.Nav = {};
+    Signum.Layout.Nav.toggleOpenMenu = function()
+    {
+        document.getElementById("navHidable").classList.toggle("hidden");
+    };
+</script>
+<nav aria-label="Menu principal">
+    <div>
+        <button type="button" class="lg:hidden" onClick="Signum.Layout.Nav.toggleOpenMenu()">
+            <Image src="/pics/menu.svg" width={64} height={64} alt="Abrir/fechar menu" />
+        </button>
+        <span id="navHidable" class="hidden lg:flex flex-col lg:flex-row lg:space-x-4 uppercase text-[0.9rem]">
+            <%- include('navbar_item', { href: "/", label: "Home" }) %>
+            <%- include('navbar_item', { href: "/page/interpreters/home", label: "Intérprete" }) %>
+            <%- include('navbar_item', { href: "/page/customers/home", label: "Cliente" }) %>
+            <%- include('navbar_item', { href: "/page/organizations/home", label: "Organização" }) %>
+        </span>
+    </div>    
+</nav>

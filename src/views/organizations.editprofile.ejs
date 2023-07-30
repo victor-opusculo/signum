@@ -1,0 +1,116 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+
+<% if (orgObj) { %>
+<div class="frame">
+    <form method="post" onsubmit="return Signum.Organizations.EditProfile.onFormSubmit(event)" action="/post/organizations_editprofile" enctype="multipart/form-data">
+        <h3>Perfil</h3>
+        <%- include('components/ext_label', { props: { label: "Nome da organização", children: `<input type="text" required class="w-full" name="orgName" value="${helperFns.escapeHtml(orgObj.get('name') ?? '')}" />` }}) %>
+        <%- include('components/ext_label', { props: { label: "E-mail de contato", children: `<input type="email" required class="w-full" name="orgEmail" value="${helperFns.escapeHtml(orgObj.get('email') ?? '')}" />` }}) %>
+
+        <% const otherInfos = orgObj.decodeOtherInfos(); %>
+        <fieldset class="fieldset">
+            <legend>Outras informações</legend>
+            <ol class="otherInfosList">
+            <% for (const info of otherInfos) { %>
+                <li>
+                    <input type="text" required placeholder="Nome/rótulo" class="oiLabel" value="<%= info.label %>" />
+                    <input type="text" required size="40" placeholder="Informação" class="oiValue" value="<%= info.value %>" />
+                    <button type="button" class="btn py-1 px-2" onclick="Signum.Organizations.EditProfile.deleteInfo.bind(this)(event)">&times;</button>
+                </li>
+            <% } %>
+            </ol>
+            <button type="button" class="btn py-1 mt-2" onclick="Signum.Organizations.EditProfile.addInfo(event)">Adicionar</button>
+        </fieldset>
+
+        <%- include('components/ext_label', { props: { label: "Definir/alterar foto de logotipo", children: `<input type="file" id="fileInput" class="file:btn" name="fileOrgPhoto" accept="image/jpeg,image/png,image/gif" />` }}) %>
+        <%- include('components/ext_label', { props: { label: "Remover logo atual", reverse: true, children: `<input type="checkbox" name="chkRemovePhoto"/> `}}) %>
+        <br/>
+        <h3>Alterar dados de log-in</h3>
+        <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="intrUsername" required value="${helperFns.escapeHtml(orgObj.get('username') ?? '')}"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha atual", children: `<input type="password" id="txtOldPass" name="txtOldPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha nova", children: `<input type="password" id="txtNewPass" name="txtNewPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Confirme a senha nova", children: `<input type="password" id="txtNewPass2" name="txtNewPassword2"/>` }}) %>
+    
+        <div class="text-center">
+            <input type="hidden" id="otherInfosJson" name="orgOtherInfos" value="" />
+            <button type="submit" class="btn">Salvar</button>
+        </div>
+
+        <script>
+            Signum.Organizations = Signum.Organizations || {};
+            Signum.Organizations.EditProfile = Signum.Organizations.EditProfile || {};
+
+            Signum.Organizations.EditProfile.onFormSubmit = function(e)
+            {
+                const fileInput = document.getElementById('fileInput');
+                
+                if (fileInput.files && fileInput.files[0])
+                {
+                    const file = fileInput.files[0];
+                    if (file.size > 1024 * 1024 * 1)
+                    {
+                        alert("Tamanho máximo permitido para a foto de 1MB!");
+                        return false;
+                    }
+                }
+
+                const oldPass = document.getElementById('txtOldPass').value;
+                if (oldPass)
+                {
+                    const newPass = document.getElementById('txtNewPass').value;
+                    const newPass2 = document.getElementById('txtNewPass2').value;
+
+                    if (newPass !== newPass2)
+                    {
+                        alert("As senhas novas não coincidem!");
+                        return false;
+                    }
+                }
+
+                document.getElementById('otherInfosJson').value = Signum.Organizations.EditProfile.generateOtherInfosJson();
+
+                return true;
+            };
+
+            Signum.Organizations.EditProfile.generateOtherInfosJson = function()
+            {
+                const output = [];
+                const lis = document.querySelector('.otherInfosList').querySelectorAll('li');
+
+                for (const li of lis)
+                {
+                    const label = li.querySelector('.oiLabel').value;
+                    const value = li.querySelector('.oiValue').value;
+
+                    output.push({ label, value });
+                }
+
+                return JSON.stringify(output);
+            };
+
+            Signum.Organizations.EditProfile.deleteInfo = function(e)
+            {
+                const li = this.parentNode;
+                const ol = li.parentNode;
+
+                ol.removeChild(li);
+            };
+
+            Signum.Organizations.EditProfile.addInfo = function(e)
+            {
+                const ol = document.querySelector('.otherInfosList');
+                const newLi = document.createElement('li');
+                const liContent = 
+                `<input required type="text" placeholder="Nome/rótulo" class="oiLabel" />
+                <input required type="text" size="40" placeholder="Informação" class="oiValue" />
+                <button type="button" class="btn py-1 px-2" onclick="Signum.Organizations.EditProfile.deleteInfo.bind(this)(event)">&times;</button>
+                `;
+                
+                newLi.innerHTML = liContent;
+                ol.appendChild(newLi);
+            };
+        </script>
+    </form>
+</div>
+
+<% } %>

@@ -1,0 +1,11 @@
+/node_modules
+/public/uploads/interpreters/**/*
+/public/uploads/organizations/**/*
+
+!/public/uploads/interpreters/.gitkeep
+!/public/uploads/organizations/.gitkeep
+
+/public/twoutput.css
+/dist/**/*
+
+.env.local
