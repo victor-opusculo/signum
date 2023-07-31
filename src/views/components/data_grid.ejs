@@ -1,0 +1,60 @@
+<% 
+props.detailsUrl ??= undefined;
+props.editUrl ??= undefined;
+props.deleteUrl ??= undefined;
+props.useHeaders ??= false;
+props.rudButtonsParamName ??= 'id';
+props.columnsToHide ??= [];
+props.data ??= [];
+
+function applyParam(urlTemplate, rowObject)
+{
+    const param = rowObject[props.rudButtonsParamName];
+    return String(urlTemplate).replace('{param}', param);
+}
+%>
+
+<table class="responsibleTable">
+    <% if (props.useHeaders) { %>
+    <thead>
+        <tr>
+            <% if (props.data && props.data[0] && typeof props.data[0] === "object") { %>
+                <% for (const key in props.data[0]) { %>
+                    <% if (!props.columnsToHide.includes(key)) { %>
+                        <th><%= key %></th>
+                    <% } %>
+                <% } %>
+            <% } %>
+            <% if (props.detailsUrl) { %><th class="w-8"></th><% } %> 
+            <% if (props.editUrl) { %><th class="w-8"></th><% } %> 
+            <% if (props.deleteUrl) { %><th class="w-8"></th><% } %> 
+        </tr>
+    </thead>
+    <% } %>
+    <tbody>
+        <% for (const line of props.data) { %>
+            <tr>
+                <% for (const [key, value] of Object.entries(line)) { %>
+                    <% if (!props.columnsToHide.includes(key)) { %>
+                        <td data-th="<%= key %>"><%= value %></td>
+                    <% } %>
+                <% } %>
+                <% if (props.detailsUrl) { %>
+                    <td data-th="Detalhes">
+                        <a href="<%= applyParam(props.detailsUrl, line) %>"><img class="h-[1.3em] w-auto" src="/pics/search_icon.svg" alt="Detalhes"/></a>
+                    </td>
+                <% } %>
+                <% if (props.editUrl) { %>
+                    <td data-th="Editar">
+                        <a href="<%= applyParam(props.editUrl, line) %>"><img class="h-[1.5em] w-auto" src="/pics/edit_icon.svg" alt="Editar"/></a>
+                    </td>
+                <% } %>
+                <% if (props.deleteUrl) { %>
+                    <td data-th="Detalhes">
+                        <a href="<%= applyParam(props.deleteUrl, line) %>"><img class="h-[1.2em] w-auto" src="/pics/delete_icon.svg" alt="Excluir"/></a>
+                    </td>
+                <% } %>
+            </tr>
+        <% } %>
+    </tbody>
+</table>

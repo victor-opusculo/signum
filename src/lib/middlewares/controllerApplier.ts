@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import * as controllers from '../../controllers/index.js';
 import helperFns from "../helpers/helperFns.js";
+import { Organization } from "../model/organizations/Organization.js";
+import connection from "../model/database/connection.js";
+
 
 export default async function controllerApplier(request: Request, response: Response)
 {
@@ -9,11 +12,14 @@ export default async function controllerApplier(request: Request, response: Resp
 
     if (!(controllers as any)[request.params.controller])
         return response.status(404).send("Página não encontrada!");
+
+    const loadedOrganization = await Organization.loadOrganizationDataByCustomerId(connection(), request, response);
+
     try
     {
         const cont = new (controllers as any)[request.params.controller](request, response);
         await cont.runAction(request.params.action ?? 'home');
-        response.render('index', { request, response, controller: cont, idParam: request.params.id ?? undefined, pageMessages: cont.pageMessages, helperFns });
+        response.render('index', { loadedOrganization, request, response, controller: cont, idParam: request.params.id ?? undefined, pageMessages: cont.pageMessages, helperFns });
     }
     catch (err)
     {

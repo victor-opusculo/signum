@@ -46,7 +46,7 @@ export class BaseController
             await fn.bind(this)();
         
         const self = this.constructor as typeof BaseController;
-        this.renderedHtml = await ejs.renderFile(`./src/views/${self.controllerName}.${this.action}.ejs`, this.pageData);
+        this.renderedHtml = await ejs.renderFile(`./src/views/${self.controllerName}.${this.action}.ejs`, {...this.pageData, request: this.request } );
     }
 
     public render()

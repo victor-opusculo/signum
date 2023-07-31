@@ -7,6 +7,7 @@ export class homepage extends BaseController
 
     public home()
     {
-        this.pageData.testData = 123;
+        this._pageTitle = "Signum Platform";
+        this._pageSubtitle = "Bem vindo(a)!";
     }
 }

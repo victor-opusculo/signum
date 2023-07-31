@@ -8,7 +8,7 @@ export class interpreters extends BaseController
 
     public async home()
     {
-        this._pageTitle = "Singum | Painel de intérprete";
+        this._pageTitle = "Signum | Painel de intérprete";
         this._pageSubtitle = "Painel de intérprete";
 
         const [ intrId, intrName ] = await Interpreter.checkLoginOnPage(connection(), this.request, this.response);
@@ -17,13 +17,13 @@ export class interpreters extends BaseController
 
     public async login()
     {
-        this._pageTitle = "Singum | Log-in de intérprete";
+        this._pageTitle = "Signum | Log-in de intérprete";
         this._pageSubtitle = "Log-in de intérprete";
     }
 
     public async editprofile()
     {
-        this._pageTitle = "Singum | Editar perfil de intérprete";
+        this._pageTitle = "Signum | Editar perfil de intérprete";
         this._pageSubtitle = "Editar perfil de intérprete";
 
         const [ intrId, intrName ] = await Interpreter.checkLoginOnPage(connection(), this.request, this.response);
@@ -42,7 +42,7 @@ export class interpreters extends BaseController
 
     public async viewprofile()
     {
-        this._pageTitle = "Singum | Ver perfil de intérprete";
+        this._pageTitle = "Signum | Ver perfil de intérprete";
         this._pageSubtitle = "Ver perfil de intérprete";
 
         const [ intrId, intrName ] = await Interpreter.checkLoginOnPage(connection(), this.request, this.response);

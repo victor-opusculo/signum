@@ -10,7 +10,12 @@
         <div id="growableToFooter">
             <header class="bg-white border-b border-b-neutral-300">
                 <div class="mx-auto max-w-[1000px] h-20 flex flex-row items-center">
-                    <img class="h-10 w-auto mr-4" src="/pics/logo.jpg" alt="Signum Platform" />
+                    <img class="h-10 w-auto mr-4" 
+                    src="<%- loadedOrganization && loadedOrganization.get('logo_filename') ? 
+                    '/uploads/organizations/' + loadedOrganization.get('logo_filename')
+                    :
+                    '/pics/logo.jpg' %>" 
+                    alt="<%= loadedOrganization ? loadedOrganization.get('name') + ' | ' : '' %>Signum Platform" />
                     <%- include('components/navbar') %>
                 </div>
             </header>
@@ -29,6 +34,7 @@
         </div>
         <footer>
             Signum Platform
+            <p><%= loadedOrganization ? 'Uso contratado para ' + loadedOrganization.get('name') : '' %></p>
         </footer>
     </body>
 </html>

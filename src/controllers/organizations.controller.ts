@@ -8,7 +8,7 @@ export class organizations extends BaseController
 
     public async home()
     {
-        this._pageTitle = "Singum | Painel de organização";
+        this._pageTitle = "Signum | Painel de organização";
         this._pageSubtitle = "Painel de organização";
 
         const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
@@ -17,13 +17,13 @@ export class organizations extends BaseController
 
     public async login()
     {
-        this._pageTitle = "Singum | Log-in de organização";
+        this._pageTitle = "Signum | Log-in de organização";
         this._pageSubtitle = "Log-in de organização";
     }
 
     public async editprofile()
     {
-        this._pageTitle = "Singum | Editar perfil de organização";
+        this._pageTitle = "Signum | Editar perfil de organização";
         this._pageSubtitle = "Editar perfil de organização";
 
         const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
@@ -42,7 +42,7 @@ export class organizations extends BaseController
 
     public async viewprofile()
     {
-        this._pageTitle = "Singum | Ver perfil de organização";
+        this._pageTitle = "Signum | Ver perfil de organização";
         this._pageSubtitle = "Ver perfil de organização";
 
         const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);

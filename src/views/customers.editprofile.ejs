@@ -1,0 +1,45 @@
+<%- include('fragments/logged_customer_bar', { customerName }) %>
+
+<% if (custObj) { %>
+<div class="frame">
+    <form method="post" onsubmit="return Signum.Customers.EditProfile.onFormSubmit(event)" action="/post/customers_editprofile">
+        <h3>Perfil</h3>
+        <%- include('components/ext_label', { props: { label: "Nome completo", children: `<input type="text" required class="w-full" name="custName" value="${helperFns.escapeHtml(custObj.get('name') ?? '')}" />` }}) %>
+
+        <br/>
+        <h3>Alterar dados de log-in</h3>
+        <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" required value="${helperFns.escapeHtml(custObj.get('username') ?? '')}"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha atual", children: `<input type="password" id="txtOldPass" name="txtOldPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha nova", children: `<input type="password" id="txtNewPass" name="txtNewPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Confirme a senha nova", children: `<input type="password" id="txtNewPass2" name="txtNewPassword2"/>` }}) %>
+    
+        <div class="text-center">
+            <button type="submit" class="btn">Salvar</button>
+        </div>
+
+        <script>
+            Signum.Customers = Signum.Customers || {};
+            Signum.Customers.EditProfile = Signum.Customers.EditProfile || {};
+
+            Signum.Customers.EditProfile.onFormSubmit = function(e)
+            {
+                const oldPass = document.getElementById('txtOldPass').value;
+                if (oldPass)
+                {
+                    const newPass = document.getElementById('txtNewPass').value;
+                    const newPass2 = document.getElementById('txtNewPass2').value;
+
+                    if (newPass !== newPass2)
+                    {
+                        alert("As senhas novas não coincidem!");
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+        </script>
+    </form>
+</div>
+
+<% } %>

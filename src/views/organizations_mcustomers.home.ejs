@@ -1,0 +1,31 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+
+<div class="frame">
+    <%- include('components/search_bar') %>
+
+    <div class="text-right my-2">
+        Ordem de exibição:
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations_mcustomers/home', helperFns.overwriteQuery(request, 'order_by', 'name')) %>">Nome</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations_mcustomers/home', helperFns.overwriteQuery(request, 'order_by', 'username')) %>">Nome de usuário</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations_mcustomers/home', helperFns.overwriteQuery(request, 'order_by', 'registration_datetime')) %>">Data de registro</a>
+    </div>
+
+    <%- include('components/data_grid', { props:
+    {
+        detailsUrl: '/page/organizations_mcustomers/view/{param}',
+        editUrl: '/page/organizations_mcustomers/edit/{param}',
+        deleteUrl: '/page/organizations_mcustomers/delete/{param}',
+        useHeaders: true,
+        columnsToHide: ['id'],
+        data: customersData
+    }}) %>
+
+    <%- include('components/paginator', { props: 
+    {
+        pageNumber: request.query.page_num || 1,
+        totalItems: customersCount,
+        numberResultsOnPage: itemsOnpage,
+        basePath: '/page/organizations_mcustomers/home',
+        baseQueryString: request.query
+    }}) %>
+</div>

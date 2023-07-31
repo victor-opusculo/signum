@@ -1,0 +1,61 @@
+<%
+props.pageNumber ??= 1;
+props.totalItems ??= 0;
+props.numberResultsOnPage ??= 20;
+props.basePath ??= '/';
+props.baseQueryString ??= {};
+
+function removeQueryParam(query, paramToRemove)
+{
+    const obj = { ...query};
+    delete obj[paramToRemove];
+    return obj;
+}
+
+function addQsPageNum(query, pageNum1)
+{
+    const obj = removeQueryParam(query, 'page_num');
+    obj.page_num = pageNum1.toString();
+    return obj;
+}
+
+function buildUrl(query)
+{
+    const queryM = Object.entries(query).reduce( (prev, keyVal) => (prev ? prev + '&' : '') + `${keyVal[0]}=${keyVal[1]}`, '');
+    return props.basePath + '?' + queryM;
+}
+
+function pageNum(num) { return addQsPageNum(props.baseQueryString, num); }
+%>
+
+<% if (Math.ceil(props.totalItems / props.numberResultsOnPage) !== 0) { %>
+
+    <ul className="pagination">
+        <% if (props.pageNumber > 1) {%>
+            <li><a href="<%= buildUrl(pageNum(props.pageNumber - 1)) %>">
+                <%- include('../fragments/left_arrow') %>
+            </a></li>
+        <% } %>
+        <% if (props.pageNumber > 3) { %>
+            <li><a href="<%= buildUrl(pageNum(1)) %>">1</a></li>
+            <li>...</li>
+        <% } %>
+        <% if (props.pageNumber - 2 > 0) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber - 2)) %>"><%= props.pageNumber - 2 %></a></li> <% } %>
+        <% if (props.pageNumber - 1 > 0) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber - 1)) %>"><%= props.pageNumber - 1 %></a></li> <% } %>
+
+        <li className="currentPageNum"><a href="<%= buildUrl(pageNum(props.pageNumber)) %>"><%= props.pageNumber %></a></li>
+
+        <% if (props.pageNumber + 1 < Math.ceil(props.totalItems / props.numberResultsOnPage) + 1) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber + 1)) %>"><%= props.pageNumber + 1 %></a></li> <% } %>
+        <% if (props.pageNumber + 2 < Math.ceil(props.totalItems / props.numberResultsOnPage) + 1) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber + 2)) %>"><%= props.pageNumber + 2 %></a></li> <% } %>
+
+        <% if (props.pageNumber < Math.ceil(props.totalItems / props.numberResultsOnPage) - 2) { %>
+            <li>...</li>
+            <li><a href="<%= buildUrl(pageNum(Math.ceil(props.totalItems / props.numberResultsOnPage))) %>"><%= Math.ceil(props.totalItems / props.numberResultsOnPage) %></a></li>
+        <% } %>
+        <% if (props.pageNumber < Math.ceil(props.totalItems / props.numberResultsOnPage)) { %>
+            <li><a href="<%= buildUrl(pageNum(props.pageNumber + 1)) %>">
+                <%- include('../fragments/right_arrow') %>
+            </a></li>
+        <% } %>
+    </ul>
+<% } %>

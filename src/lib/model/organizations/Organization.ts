@@ -6,6 +6,7 @@ import jwt from 'jwt-promisify';
 import { InvalidToken } from "../exceptions/InvalidToken";
 import { DatabaseEntityNotFound } from "../exceptions/DatabaseEntityNotFound";
 import bcrypt from 'bcrypt';
+import { Customer } from "../customers/Customer";
 
 export interface OrganizationProperties extends PropertiesGroup
 {
@@ -54,6 +55,21 @@ export class Organization extends DataEntity<OrganizationProperties>
 
         const dr = count.pop();
         return (dr && dr.count && Number(dr.count) > 0);
+    }
+
+    public static async loadOrganizationDataByCustomerId(conn: Knex, request: Request, response: Response)
+    {
+        if (request.cookies.customerToken)
+        {
+            try
+            {
+                const result = await jwt.verify(request.cookies.customerToken, process.env.SIGNUM_CUSTOMERS_JWT_SECRET as string);
+                const orgId = await new Customer({ id: result.customerId }).getOrganizationId(conn);
+                const organization = await new Organization({ id: orgId }).getSingle(conn) as Organization;
+                return organization;
+            }
+            catch (err) { return undefined; }
+        }
     }
 
     public static async checkLoginOnPage(conn: Knex, request: Request, response: Response) : Promise<[number, string]>
