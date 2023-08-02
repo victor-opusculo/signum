@@ -26,12 +26,72 @@ export class organizations_mcustomers extends BaseController
             'id': c => c.get("id"),
             'Nome': c => c.get("name"),
             'Usuário': c => c.get("username"),
-            'Minutos disponíveis': c => c.get("minutes_available")
+            'Minutos disponíveis': c => c.get("minutes_available"),
+            'Ativo?': c => c.get("is_active") ? 'Sim' : 'Não'
         });
 
         this.pageData.customersData = transformed;
         this.pageData.customersCount = customersCount;
         this.pageData.itemsOnpage = itemsOnpage;
     
+    }
+
+    public async create()
+    {
+        this._pageTitle = "Signum | Criar cliente";
+        this._pageSubtitle = "Criar cliente";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+    }
+
+    public async edit()
+    {
+        this._pageTitle = "Signum | Editar cliente";
+        this._pageSubtitle = "Editar cliente";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+
+        let customer: Customer|undefined;
+
+        try
+        {
+            const custId = this.request.params.id ?? 0;
+            const getter = new Customer({ id: custId, organization_id: orgId });
+            customer = await getter.getSingleFromOrganization(connection());
+        }
+        catch (err)
+        {
+            if (err instanceof Error)
+                this._messages.push(err.message);
+        }
+    
+        this.pageData.custObj = customer;
+    }
+
+    public async delete()
+    {
+        this._pageTitle = "Signum | Excluir cliente";
+        this._pageSubtitle = "Excluir cliente";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+
+        let customer: Customer|undefined;
+
+        try
+        {
+            const custId = this.request.params.id ?? 0;
+            const getter = new Customer({ id: custId, organization_id: orgId });
+            customer = await getter.getSingleFromOrganization(connection());
+        }
+        catch (err)
+        {
+            if (err instanceof Error)
+                this._messages.push(err.message);
+        }
+    
+        this.pageData.custObj = customer;
     }
 }

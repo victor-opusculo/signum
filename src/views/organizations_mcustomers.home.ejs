@@ -10,9 +10,10 @@
         <a class="link" href="<%= helperFns.genUrl('/page/organizations_mcustomers/home', helperFns.overwriteQuery(request, 'order_by', 'registration_datetime')) %>">Data de registro</a>
     </div>
 
+    <a href="/page/organizations_mcustomers/create" class="btn my-2">+ Novo</a>
+
     <%- include('components/data_grid', { props:
     {
-        detailsUrl: '/page/organizations_mcustomers/view/{param}',
         editUrl: '/page/organizations_mcustomers/edit/{param}',
         deleteUrl: '/page/organizations_mcustomers/delete/{param}',
         useHeaders: true,
@@ -22,7 +23,7 @@
 
     <%- include('components/paginator', { props: 
     {
-        pageNumber: request.query.page_num || 1,
+        pageNumber: Number(request.query.page_num) || 1,
         totalItems: customersCount,
         numberResultsOnPage: itemsOnpage,
         basePath: '/page/organizations_mcustomers/home',

@@ -1,0 +1,18 @@
+<% if (custObj) { %>
+    <div class="frame">
+        <form method="post" action="/post/organizations_mcustomers_edit?id=<%= custObj.get('id') %>">
+            <h3>Perfil</h3>
+            <%- include('components/ext_label', { props: { label: "Nome", children: `<input type="text" class="w-full" name="custName" required maxlength="140" value="${helperFns.escapeHtml(custObj.get("name"))}" />` } }) %>
+            <%- include('components/ext_label', { props: { label: "Ativo", reverse:true, children: `<input type="checkbox" name="chkIsActive" value="1" ${custObj.get('is_active') ? 'checked' : ''} />` }}) %>
+            <%- include('components/ext_label', { props: { label: "Minutos disponíveis", children: custObj.get('minutes_available') } }) %>
+            <br/>
+            <h3>Alterar dados de log-in</h3>
+            <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" maxlength="140" required value="${helperFns.escapeHtml(custObj.get('username'))}"/>` }}) %>
+            <%- include('components/ext_label', { props: { label: "Alterar senha", children: `<input type="text" maxlength="140" name="txtNewPassword"/>` }}) %>
+            <div class="text-center">
+                <input type="hidden" name="custId" value="<%= custObj.get("id") %>" />
+                <button type="submit" class="btn">Salvar</button>
+            </div>
+        </form>
+    </div>
+<% } %>

@@ -1,0 +1,12 @@
+<% if (custObj) { %>
+    <div class="frame">
+        <form method="post" action="/post/organizations_mcustomers_delete?id=<%= custObj.get("id") %></form>">
+            <%- include('components/ext_label', { props: { label: "Nome", labelBold: true, children: helperFns.escapeHtml(custObj.get("name")) }}) %>
+            <%- include('components/ext_label', { props: { label: "Nome de usuário", labelBold: true, children: helperFns.escapeHtml(custObj.get("username")) }}) %>
+            <div class="text-center">
+                <button type="submit" class="btn mr-4">Sim, excluir</a>
+                <button type="button" class="btn" onclick="history.back();">Não excluir</button>
+            </div>
+        </form>
+    </div>    
+<% } %>

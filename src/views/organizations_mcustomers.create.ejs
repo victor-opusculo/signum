@@ -1,0 +1,14 @@
+<div class="frame">
+    <form method="post" action="/post/organizations_mcustomers_create">
+        <h3>Perfil</h3>
+        <%- include('components/ext_label', { props: { label: "Nome", children: `<input type="text" class="w-full" name="custName" required maxlength="140" />` } }) %>
+        <%- include('components/ext_label', { props: { label: "Ativo", reverse:true, children: `<input type="checkbox" name="chkIsActive" value="1" />` }}) %>
+        <br/>
+        <h3>Dados de log-in</h3>
+        <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" maxlength="140" required />` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha", children: `<input type="text" maxlength="140" required name="txtPassword"/>` }}) %>
+        <div class="text-center">
+            <button type="submit" class="btn">Salvar</button>
+        </div>
+    </form>
+</div>

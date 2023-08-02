@@ -1,6 +1,8 @@
 import { Customer } from "../lib/model/customers/Customer";
 import { BaseController } from "./BaseController";
 import connection from '../lib/model/database/connection';
+import { v4 as uuidv4 } from 'uuid';
+import { RedirectTo } from "../lib/model/exceptions/RedirectTo";
 
 export class customers extends BaseController
 {
@@ -38,5 +40,13 @@ export class customers extends BaseController
         {
             this._messages.push(String(err));
         }
+    }
+
+    public async create_translation_session()
+    {
+        const [ custId, custName ] = await Customer.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.customerName = custName;
+
+        throw new RedirectTo('/page/translation_sessions/room/' + uuidv4());
     }
 }

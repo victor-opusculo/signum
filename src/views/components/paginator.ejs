@@ -21,16 +21,14 @@ function addQsPageNum(query, pageNum1)
 
 function buildUrl(query)
 {
-    const queryM = Object.entries(query).reduce( (prev, keyVal) => (prev ? prev + '&' : '') + `${keyVal[0]}=${keyVal[1]}`, '');
-    return props.basePath + '?' + queryM;
+    return helperFns.genUrl(props.basePath, query);
 }
 
 function pageNum(num) { return addQsPageNum(props.baseQueryString, num); }
 %>
-
 <% if (Math.ceil(props.totalItems / props.numberResultsOnPage) !== 0) { %>
 
-    <ul className="pagination">
+    <ul class="pagination">
         <% if (props.pageNumber > 1) {%>
             <li><a href="<%= buildUrl(pageNum(props.pageNumber - 1)) %>">
                 <%- include('../fragments/left_arrow') %>
@@ -43,7 +41,7 @@ function pageNum(num) { return addQsPageNum(props.baseQueryString, num); }
         <% if (props.pageNumber - 2 > 0) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber - 2)) %>"><%= props.pageNumber - 2 %></a></li> <% } %>
         <% if (props.pageNumber - 1 > 0) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber - 1)) %>"><%= props.pageNumber - 1 %></a></li> <% } %>
 
-        <li className="currentPageNum"><a href="<%= buildUrl(pageNum(props.pageNumber)) %>"><%= props.pageNumber %></a></li>
+        <li class="currentPageNum"><a href="<%= buildUrl(pageNum(props.pageNumber)) %>"><%= props.pageNumber %></a></li>
 
         <% if (props.pageNumber + 1 < Math.ceil(props.totalItems / props.numberResultsOnPage) + 1) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber + 1)) %>"><%= props.pageNumber + 1 %></a></li> <% } %>
         <% if (props.pageNumber + 2 < Math.ceil(props.totalItems / props.numberResultsOnPage) + 1) { %><li><a href="<%= buildUrl(pageNum(props.pageNumber + 2)) %>"><%= props.pageNumber + 2 %></a></li> <% } %>

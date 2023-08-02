@@ -7,6 +7,7 @@ import jwt from 'jwt-promisify';
 import { InvalidToken } from "../exceptions/InvalidToken";
 import bcrypt from 'bcrypt';
 import { BlacklistedToken } from "../exceptions/BlacklistedToken";
+import { CustomerInactive } from "../exceptions/CustomerInactive";
 
 export interface CustomerProperties extends PropertiesGroup
 {
@@ -39,6 +40,8 @@ export class Customer extends DataEntity<CustomerProperties>
             registration_datetime: new DataProperty(),
             last_login_token: new DataProperty()
         }, intitialValues);
+
+        this.properties.is_active.valueTransformer = value => this.otherProperties.chkIsActive ? 1 : 0;
     }
 
     public static readonly databaseTable: string = 'customers';
@@ -53,6 +56,19 @@ export class Customer extends DataEntity<CustomerProperties>
 
         const dr = count.pop();
         return (dr && dr.count && Number(dr.count) > 0);
+    }
+
+    public async getSingleFromOrganization(conn: Knex) : Promise<Customer>
+    {
+        const gotten = await conn<CustomerAttributes>(Customer.databaseTable)
+        .where({ id: this.get("id") ?? undefined, organization_id: this.get("organization_id") ?? undefined })
+        .select("*")
+        .first();
+        
+        if (!gotten)
+            throw new DatabaseEntityNotFound("Cliente não localizado!", Customer.databaseTable);
+        
+        return this.newInstanceFromDataRow(gotten) as Customer;
     }
 
     public static async checkLoginOnPage(conn: Knex, request: Request, response: Response) : Promise<[number, string]>
@@ -102,11 +118,14 @@ export class Customer extends DataEntity<CustomerProperties>
     {
         const cust = await conn<CustomerAttributes>(Customer.databaseTable)
         .where({ username })
-        .select('username', 'password_hash', 'id')
+        .select('username', 'password_hash', 'id', 'is_active')
         .first();
 
         if (!cust)
             throw new DatabaseEntityNotFound("Cliente não localizado!", Customer.databaseTable);
+
+        if (!cust.is_active)
+            throw new CustomerInactive();
 
         if (await bcrypt.compare(password, cust.password_hash ?? ''))
             return [true, cust.id ?? 0];

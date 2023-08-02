@@ -58,4 +58,14 @@ export class interpreters extends BaseController
             this._messages.push(String(err));
         }
     }
+
+    public async waitforcall()
+    {
+        this._pageTitle = "Signum | Aguardando solicitação de tradução";
+        this._pageSubtitle = "Aguardando solicitação de tradução";
+
+        const [ intrId, intrName ] = await Interpreter.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.interpreterName = intrName;
+        this.pageData.interpreterId = intrId;
+    }
 }

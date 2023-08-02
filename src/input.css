@@ -21,7 +21,7 @@
 {
     .link { @apply text-base text-sky-700 mx-2 hover:text-sky-800 hover:underline active:text-sky-900 }
 
-    input[type='text'], input[type='password'], input[type='search'], input[type='number'], input[type='email'], input[type='date'], input[type='time'], select, textarea { @apply border rounded border-neutral-500 px-1 }
+    input[type='text'], input[type='password'], input[type='search'], input[type='number'], input[type='email'], input[type='date'], input[type='time'], select, textarea { @apply border rounded border-neutral-500 py-1 px-1 }
     .btn { @apply rounded border bg-sky-700 border-sky-800 text-white p-2 px-6 hover:bg-sky-800 active:bg-sky-900 }
 
     .frame { @apply p-4 w-full bg-white rounded border border-neutral-300 }

@@ -1,9 +1,10 @@
-import { Request } from "express";
+import { Request, urlencoded } from "express";
+import querystring from 'node:querystring';
 
 export default {
     escapeHtml: (unsafe: string) => 
     {
-        return unsafe
+        return (unsafe ?? '')
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -20,7 +21,8 @@ export default {
 
     genUrl: (base: string, query: any) =>
     {
-        const queries = Object.entries(query).reduce( (prev, keyVal) => (prev ? prev + '&' : '') + `${keyVal[0]}=${keyVal[1]}`, '');
+        const queries = querystring.stringify(query);
+        //Object.entries(query).reduce( (prev, keyVal) => (prev ? prev + '&' : '') + `${keyVal[0]}=${keyVal[1]}`, '');
         return base + '?' + queries;
     }
 }

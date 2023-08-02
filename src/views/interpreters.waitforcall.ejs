@@ -1,0 +1,18 @@
+<%- include('fragments/logged_interpreter_bar', { interpreterName }) %>
+
+<h2>Aguardando cliente solicitar sessão de tradução. Mantenha esta página aberta.</h2>
+
+<script src="/socket.io/socket.io.js" defer></script>
+<script>
+    window.onload = function()
+    {
+        const intrId = Number('<%= interpreterId %>');
+        const socket = io('/');
+        socket.emit("interpreterWaiting", intrId);
+
+        socket.on('customerCalled', roomId =>
+        {
+            window.location.href = '/page/translation_sessions/room/' + roomId;
+        });
+    };
+</script>

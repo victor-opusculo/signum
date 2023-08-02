@@ -8,10 +8,10 @@
 
         <br/>
         <h3>Alterar dados de log-in</h3>
-        <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" required value="${helperFns.escapeHtml(custObj.get('username') ?? '')}"/>` }}) %>
-        <%- include('components/ext_label', { props: { label: "Senha atual", children: `<input type="password" id="txtOldPass" name="txtOldPassword"/>` }}) %>
-        <%- include('components/ext_label', { props: { label: "Senha nova", children: `<input type="password" id="txtNewPass" name="txtNewPassword"/>` }}) %>
-        <%- include('components/ext_label', { props: { label: "Confirme a senha nova", children: `<input type="password" id="txtNewPass2" name="txtNewPassword2"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" maxlength="140" required value="${helperFns.escapeHtml(custObj.get('username') ?? '')}"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha atual", children: `<input type="password" id="txtOldPass" maxlength="140" name="txtOldPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Senha nova", children: `<input type="password" id="txtNewPass" maxlength="140" name="txtNewPassword"/>` }}) %>
+        <%- include('components/ext_label', { props: { label: "Confirme a senha nova", children: `<input type="password" id="txtNewPass2" maxlength="140" name="txtNewPassword2"/>` }}) %>
     
         <div class="text-center">
             <button type="submit" class="btn">Salvar</button>
