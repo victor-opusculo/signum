@@ -1,0 +1,30 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+    <%- include('components/search_bar') %>
+
+    <div class="text-right my-2">
+        Ordem de exibição:
+        <a class="link" href="<%= helperFns.genUrl('/page/customers/interpreters', helperFns.overwriteQuery(request, 'order_by', 'name')) %>">Nome</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/customers/interpreters', helperFns.overwriteQuery(request, 'order_by', 'username')) %>">Nome de usuário</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/customers/interpreters', helperFns.overwriteQuery(request, 'order_by', 'sessionsWorkedAt')) %>">Sessões trabalhadas</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/customers/interpreters', helperFns.overwriteQuery(request, 'order_by', 'totalMinutes')) %>">Minutos trabalhados</a>
+    </div>
+
+    <%- include('components/data_grid', { props:
+    {
+        detailsUrl: '/page/customers/view_interpreter/{param}',
+        useHeaders: true,
+        columnsToHide: ['id'],
+        data: intrData
+    }}) %>
+
+    <%- include('components/paginator', { props: 
+    {
+        pageNumber: Number(request.query.page_num) || 1,
+        totalItems: intrCount,
+        numberResultsOnPage: itemsOnpage,
+        basePath: '/page/customers/interpreters',
+        baseQueryString: request.query
+    }}) %>
+</div>

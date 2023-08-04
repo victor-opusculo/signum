@@ -114,4 +114,62 @@ export class Interpreter extends DataEntity<InterpreterProperties>
 
         this.set("password_hash", hash);
     }
+
+    public async getSingle(conn: Knex<any, any[]>): Promise<Interpreter> 
+    {
+        const gotten = await conn<InterpreterAttributes>(Interpreter.databaseTable)
+        .select({ ...this.convertPropGroupToObjectWithValues([], conn, "select"), sessionsWorkedAt: conn.raw("COUNT(translation_sessions.id)"), totalMinutes: conn.raw("SUM(TIMESTAMPDIFF(MINUTE, translation_sessions.begin, translation_sessions.end))") })
+        .leftJoin("translation_sessions", "interpreters.id", "translation_sessions.interpreter_id")
+        .where(this.convertPrimaryKeysToObjectWithValues(Interpreter.primaryKeys))
+        .first();
+
+        return this.newInstanceFromDataRow(gotten) as Interpreter;
+    }
+
+    public async getCount(conn: Knex, searchKeywords: string) : Promise<number>
+    {
+        let queryBuilder = conn(Interpreter.databaseTable).count('id', { as: 'count' });
+
+        if (searchKeywords.length > 3)
+            queryBuilder.whereRaw("MATCH (name, description, username) AGAINST (?)", searchKeywords);
+
+        let countDrs = await queryBuilder;
+        let count = countDrs.pop()?.count;
+
+        if (typeof count === "string")
+            return Number.parseInt(count);
+        else if (typeof count === "number")
+            return count;
+        else
+            return 0;
+    }
+
+    public async getMultiple(conn: Knex, searchKeywords: string, orderBy: string, page?: number, numResultsOnPage?: number)
+    {
+        const queryBuilder = conn<InterpreterAttributes>(Interpreter.databaseTable)
+        .select({ ...this.convertPropGroupToObjectWithValues([], conn, "select"), sessionsWorkedAt: conn.raw("COUNT(translation_sessions.id)"), totalMinutes: conn.raw("SUM(TIMESTAMPDIFF(MINUTE, translation_sessions.begin, translation_sessions.end))") })
+        .leftJoin("translation_sessions", "interpreters.id", "translation_sessions.interpreter_id")
+        .groupBy("interpreters.id");
+
+        if (searchKeywords.length > 3)
+            queryBuilder.whereRaw("MATCH (name, description, username) AGAINST (?)", searchKeywords);
+
+        switch (orderBy)
+        {
+            case "sessionsWorkedAt": queryBuilder.orderBy("sessionsWorkedAt", "asc"); break;
+            case "totalMinutes": queryBuilder.orderBy("totalMinutes", "asc"); break;
+            case "name": queryBuilder.orderBy("name", "asc"); break;
+            case "username": default: queryBuilder.orderBy("username", "asc"); break;
+        }
+
+        if (page && numResultsOnPage)
+        {
+	        const calcPage = (page - 1) * numResultsOnPage;
+            queryBuilder.offset(calcPage);
+            queryBuilder.limit(numResultsOnPage);
+        }
+
+        const rows = await queryBuilder as DataRow[];
+        return rows.map( row => this.newInstanceFromDataRow(row) as Interpreter );
+    }
 }

@@ -1,7 +1,12 @@
 const socket = io('/');
 let peer;
 let myVideoStream;
+let enableAudio = true;
+let enableVideo = true;
+let myScreenStream;
 let myPeerId;
+let myVideoDivId = new Date().valueOf() + Math.random();
+let streamMode = 'camera';
 var videoGrid = document.getElementById('videoDiv')
 var myvideo = document.createElement('video');
 myvideo.muted = true;
@@ -12,21 +17,34 @@ async function enableMedia()
     const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
     myVideoStream = stream;
 
-    addVideo(myvideo, stream);
+    addVideo(myvideo, stream, screenName, myVideoDivId);
+    return stream;
+}
 
+function afterEnableMedia(stream)
+{
     peer = new Peer();
     peer.on('call' , call=>
     {
         const vid = document.createElement('video');
-        call.on('stream' , userStream=>{
-          addVideo(vid , userStream);
+        let id;
+        call.on('stream' , userStream=>
+        {
+            if (document.getElementById('btnCallNewInterpreter') && call.metadata?.userType == 'interpreter')
+                document.getElementById('btnCallNewInterpreter').remove();
+
+            if (id !== userStream.id)
+            {
+                id = userStream.id;
+                addVideo(vid , userStream, call.metadata?.userScreenName, call.metadata?.videoDivId);
+            }
         })
         call.on('error' , (err)=>{
           alert(err)
         })
-        call.on("close", () => {
-            console.log(vid);
-            vid.remove();
+        call.on("close", () => 
+        {
+            removeVideo(vid);
         })
         call.answer(stream);
 
@@ -38,7 +56,7 @@ async function enableMedia()
         myPeerId = peerId;
         const userSignumId = Number(userId) || null; 
         const token = userType === 'interpreter' ? Cookies.get('interpreterToken') : (userType === 'customer' ? Cookies.get('customerToken') : null);
-        socket.emit("newUser", userType, userSignumId, token, peerId, roomID);
+        socket.emit("newUser", userType, userSignumId, token, peerId, roomID, screenName, myVideoDivId);
     });
 
     peer.on('error' , (err)=>{
@@ -46,42 +64,55 @@ async function enableMedia()
     });
 }
 
-socket.on('userJoined' , (type, signumId, peerId)=>{
-  console.log("new user joined");
-  
+socket.on('userJoined' , (type, signumId, peerId, userScreenName, videoDivId)=>
+{  
   if (type === 'interpreter')
   {
-      alert("intérprete entrou!");
+      sendRoomNotificationInChat(`${userScreenName} (intérprete) entrou na sala.`);
 
       if (document.getElementById('btnCallNewInterpreter'))
-        document.getElementById('btnCallNewInterpreter').remove();
+          document.getElementById('btnCallNewInterpreter').remove();
   }
+  else
+      sendRoomNotificationInChat(`${userScreenName} entrou na sala.`);
 
-  const call  = peer.call(peerId , myVideoStream);
+  const call  = peer.call(peerId , myVideoStream, { metadata: { userScreenName: screenName, videoDivId: myVideoDivId, userType } });
   const vid = document.createElement('video');
+  let id;
   call.on('error' , (err)=>{
     alert(err);
   })
   call.on('stream' , userStream=>
   {
-    addVideo(vid , userStream);
+      if (id !== userStream.id)
+      {
+        id = userStream.id;
+        addVideo(vid , userStream, userScreenName, videoDivId);
+      }
   })
   call.on('close' , ()=>
   {
-    vid.remove();
-    console.log("user disconect")
+      removeVideo(vid);
   })
   peerConnections[peerId] = call;
-})
-socket.on('userDisconnect' , (type, signumId, peerId)=>
+});
+
+socket.on('userDisconnect' , (type, signumId, peerId, userScreenName)=>
 {
     if (peerConnections[peerId])
         peerConnections[peerId].close();
 
     if (type === 'interpreter' && userType === 'customer')
         addCallInterpreterButton();
+
+    if (type === 'interpreter')
+        sendRoomNotificationInChat(`${userScreenName} (intérprete) saiu da sala.`);
+    else
+        sendRoomNotificationInChat(`${userScreenName} saiu da sala.`);
 });
 
+socket.on('chatMessageReceived', receiveChatMessage);
+socket.on('screenNameChanged', receiveScreenNameChange);
 socket.on('disconnect', () => window.location.href = '/page/homepage/home?messages=Você foi desconectado');
 
 function addCallInterpreterButton()
@@ -102,11 +133,116 @@ function addCallInterpreterButton()
     document.getElementById('videoDiv').appendChild(button);
 }
 
-function addVideo(video , stream)
+function addVideo(video, stream, userScreenName, videoDivId)
 {
+    const div = document.createElement('div');
+    div.id = 'video_div_' + videoDivId;
+    div.className = 'relative w-full h-full';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'absolute block bottom-0 left-0 p-1 m-1 rounded right-0 text-left text-white bg-black/70';
+    nameSpan.innerText = userScreenName;
+
+    const fullScreenButton = document.createElement('button');
+    fullScreenButton.type = 'button';
+    fullScreenButton.className = 'block absolute top-0 right-0 bg-black/50 p-2 m-1';
+    fullScreenButton.innerHTML = `<img class="block w-5 h-5" src="/pics/fullscreen-by-deemakdaksina.png" alt="Tela cheia/tela pequena" title="Ver vídeo em tamanho maior/Retornar ao tamanho menor" />`;
+    fullScreenButton.onclick = toggleFullScreen;
+
     video.srcObject = stream;
     video.addEventListener('loadedmetadata', () => video.play());
-    videoGrid.append(video);
+
+    div.appendChild(video);
+    div.appendChild(fullScreenButton);
+    div.appendChild(nameSpan);
+
+    videoGrid.append(div);
+}
+
+function removeVideo(videoElement)
+{
+    const div = videoElement.parentNode;
+    div.remove();
+}
+
+function sendRoomNotificationInChat(message)
+{
+    const ul = document.getElementById('chatMessageList');
+    const newLi = document.createElement('li');
+    newLi.innerText = `(${new Date().toLocaleString()}): ${message}`;
+
+    ul.appendChild(newLi);
+}
+
+function receiveChatMessage(userScreenName, message, datetimeUTC)
+{
+    const ul = document.getElementById('chatMessageList');
+    const newLi = document.createElement('li');
+    const messageDate = new Date(datetimeUTC);
+    newLi.innerText = `${userScreenName} (${messageDate.toLocaleString()}): ${message}`;
+
+    ul.appendChild(newLi);
+}
+
+function receiveScreenNameChange(videoDivId, oldName, newName)
+{
+    const videoDiv = document.getElementById('video_div_' + videoDivId);
+    if (videoDiv)
+        videoDiv.querySelector('span').innerText = newName;
+
+    sendRoomNotificationInChat(`"${oldName}" mudou o nome para "${newName}"`);
+}
+
+function toggleFullScreen()
+{
+    const div = this.parentNode;
+    
+    div.classList.toggle('!fixed');
+    div.classList.toggle('top-0');
+    div.classList.toggle('right-0');
+    div.classList.toggle('left-0');
+    div.classList.toggle('z-20');
+}
+
+async function switchCameraOrScreenShare(e)
+{
+    streamMode = e.target.checked ? 'screen' : 'camera';
+
+    if (streamMode === 'camera')
+    {
+        const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+        myVideoStream = stream;
+        myVideoStream.getVideoTracks().forEach(track => track.enabled = enableVideo);
+        myVideoStream.getAudioTracks().forEach(track => track.enabled = enableAudio);
+
+        for (const call of Object.values(peerConnections))
+        {
+            call.peerConnection.getSenders()[0].replaceTrack(stream.getTracks()[0]);
+            call.peerConnection.getSenders()[1].replaceTrack(stream.getTracks()[1]);
+        }
+
+        myvideo.srcObject = stream;
+    }
+    else
+    {
+        const displayMediaOptions = { video: { cursor: "always" }, audio: false };
+        let stream;
+        try
+        {
+            stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+            myScreenStream = stream;
+            myScreenStream.getVideoTracks().forEach(track => track.enabled = enableVideo);
+
+            for (const call of Object.values(peerConnections))
+                call.peerConnection.getSenders()[1].replaceTrack(stream.getTracks()[0]);
+
+            myvideo.srcObject = stream;  
+        }
+        catch (err)
+        {
+            e.target.checked = false;
+        }
+    }
 }
 
 function sendChatMessage(e)
@@ -114,13 +250,73 @@ function sendChatMessage(e)
     const textBox = document.getElementById('txtChatNewMessage');
     const ul = document.getElementById('chatMessageList');
     const newLi = document.createElement('li');
-    newLi.innerText = `{Usuário} (${new Date().toLocaleString()}): ${textBox.value}`;
+    const messageDate = new Date();
+    newLi.innerText = `${screenName} (${messageDate.toLocaleString()}): ${textBox.value}`;
+
+    socket.emit('newChatMessage', screenName, textBox.value, messageDate.toISOString());
 
     ul.appendChild(newLi);
     textBox.value = "";
 }
 
-enableMedia();
+function sendNameChange()
+{
+    const newName = document.getElementById('txtNewScreenName')?.value;
+
+    if (newName)
+    {
+        socket.emit('screenNameChange', screenName, newName);
+        receiveScreenNameChange(myVideoDivId, screenName, newName);
+        screenName = newName;
+    }
+}
+
+function toggleVideo(e)
+{
+    const enabled = enableVideo = e.target.checked ?? false;
+    const streamType = streamMode === 'camera' ? myVideoStream : myScreenStream;
+    streamType.getVideoTracks().forEach(track => track.enabled = enabled);
+}
+
+function toggleAudio(e)
+{
+    const enabled = enableAudio = e.target.checked ?? false;
+    myVideoStream.getAudioTracks().forEach(track => track.enabled = enabled);
+}
+
+const createEmptyAudioTrack = () => 
+{
+  const ctx = new AudioContext();
+  const oscillator = ctx.createOscillator();
+  const dst = oscillator.connect(ctx.createMediaStreamDestination());
+  oscillator.start();
+  const track = dst.stream.getAudioTracks()[0];
+  return Object.assign(track, { enabled: false });
+};
+
+const createEmptyVideoTrack = ({ width, height }) => 
+{
+  const canvas = Object.assign(document.createElement('canvas'), { width, height });
+  canvas.getContext('2d').fillRect(0, 0, width, height);
+
+  const stream = canvas.captureStream();
+  const track = stream.getVideoTracks()[0];
+
+  return Object.assign(track, { enabled: false });
+};
+
+enableMedia().then(afterEnableMedia).catch( () => 
+{
+    const answer = confirm("Não foi possível iniciar sua câmera e microfone. Deseja participar desta sessão mesmo assim?");
+    if (answer)
+    {
+        const audioTrack = createEmptyAudioTrack();
+        const videoTrack = createEmptyVideoTrack({ width:640, height:480 });
+        const mediaStream = new MediaStream([audioTrack, videoTrack]);
+
+        afterEnableMedia(mediaStream);
+    }
+});
 
 if (userType === 'customer')
   addCallInterpreterButton();

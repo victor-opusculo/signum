@@ -47,6 +47,11 @@ export class Customer extends DataEntity<CustomerProperties>
     public static readonly databaseTable: string = 'customers';
     public static readonly primaryKeys: string[] = ['id'];
 
+    public hasMinutesAvailable() : boolean
+    {
+        return (this.get("minutes_available") ?? 0) > 0;
+    }
+
     public async existsUsername(conn: Knex)
     {
         const count = await conn(Customer.databaseTable)
@@ -71,7 +76,7 @@ export class Customer extends DataEntity<CustomerProperties>
         return this.newInstanceFromDataRow(gotten) as Customer;
     }
 
-    public static async checkLoginOnPage(conn: Knex, request: Request, response: Response) : Promise<[number, string]>
+    public static async checkLoginOnPage(conn: Knex, request: Request, response: Response) : Promise<[number, string, number|null]>
     {
         const token = request.cookies.customerToken ?? undefined;
         
@@ -84,12 +89,12 @@ export class Customer extends DataEntity<CustomerProperties>
             if (await Customer.checkForBlacklistedTokens(conn, result.customerId, token))
                 throw new BlacklistedToken();
 
-            const org = await conn<CustomerAttributes>(Customer.databaseTable)
+            const cust = await conn<CustomerAttributes>(Customer.databaseTable)
             .where({ id: result.customerId ?? undefined })
-            .select("id", "name", "username")
+            .select("id", "name", "username", "minutes_available")
             .first();
             
-            return [ org?.id ?? 0, org?.name ?? '***' ];
+            return [ cust?.id ?? 0, cust?.name ?? '***', cust?.minutes_available ?? null ];
         }
         catch (err)
         {
@@ -172,6 +177,19 @@ export class Customer extends DataEntity<CustomerProperties>
 
         const dr = count.pop();
         return Boolean(dr && dr.count && Number(dr.count) > 0);
+    }
+
+    public static async debtSessionMinutes(conn: Knex, customerId: number, minutesToSubtract: number)
+    {
+        const currentMinutes = await conn<CustomerAttributes>(Customer.databaseTable)
+        .where({ id: customerId })
+        .select("minutes_available")
+        .first();
+
+        if (currentMinutes !== undefined)
+            await conn<CustomerAttributes>(Customer.databaseTable)
+            .where({ id: customerId })
+            .update({ minutes_available: Number(currentMinutes.minutes_available ?? 0) - minutesToSubtract }); 
     }
 
     public async checkPassword(givenPassword: string)

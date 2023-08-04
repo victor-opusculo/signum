@@ -1,7 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { v4 as uuidv4 } from 'uuid';
+import { saveTranslationSessionData, type SessionData } from './lib/helpers/sessionDataSaver.js';
 import { ExpressPeerServer } from 'peer';
 import url from 'node:url';
 import controllerApplier from './lib/middlewares/controllerApplier.js';
@@ -33,15 +33,7 @@ app.get('/', (req, res) => res.redirect('/page/homepage'));
 
 //app.get('/:room', (req, res) => res.render('index', { RoomId: req.params.room }));
 
-const roomsData:
-{
-    id: string,
-    interpreterId: { peerId: string, signumId: number }|null,
-    customerId: { peerId: string, signumId: number }|null,
-    guests: string[],
-    beginTime: Date|undefined,
-    endTime?: Date|undefined
-}[] = [];
+const roomsData: SessionData[] = [];
 
 function createRoomData(roomId: string, customerId: number|null, interpreterId: number|null, peerId: string)
 {
@@ -72,14 +64,12 @@ function createRoomData(roomId: string, customerId: number|null, interpreterId: 
 const interpretersWaitingIds: string[] = [];
 const customersWaitingRoomIds: string[] = [];
 
-function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId: number|null, peerId: string)
+function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId: number|null, peerId: string, screenName: string)
 {
-    socket.broadcast.to(roomId).emit('userDisconnect', type, signumId, peerId);
+    socket.broadcast.to(roomId).emit('userDisconnect', type, signumId, peerId, screenName);
 
     if (type === 'customer')
-    {
         io.in(roomId).disconnectSockets();
-    }
 
     let room = io.sockets.adapter.rooms.get(roomId);
     if (!room)
@@ -88,9 +78,20 @@ function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId
         if (room)
         {
             room.endTime = new Date();
-            console.log(room);
+            saveTranslationSessionData(room).finally(() => roomsData.splice(roomsData.indexOf(room), 1)).catch(console.log);
         }
     }
+}
+
+function onNewChatMessage(socket: Socket, roomId: string, screenName: string, message: string, datetimeUTC: string)
+{
+    socket.broadcast.to(roomId).emit('chatMessageReceived', screenName, message, datetimeUTC);
+}
+
+function onScreenNameChange(socket: Socket, screenNameRef: { current: string }, videoDivId: string, roomId: string, oldName: string, newName: string)
+{
+    screenNameRef.current = newName;
+    socket.broadcast.to(roomId).emit('screenNameChanged', videoDivId, oldName, newName);
 }
 
 io.on("connection", socket =>
@@ -104,7 +105,6 @@ io.on("connection", socket =>
         else
         {
             interpretersWaitingIds.push(socket.id);
-            console.log('interpreter waiting', socket.id);
             socket.on('disconnect', () => interpretersWaitingIds.splice(interpretersWaitingIds.indexOf(socket.id), 1));
         }
     });
@@ -130,8 +130,9 @@ io.on("connection", socket =>
         }
     })
 
-    socket.on("newUser", async (type, signumId, token, peerId, roomId) =>
+    socket.on("newUser", async (type, signumId, token, peerId, roomId, screenName, videoDivId) =>
     {
+        let screenNameRef = { current: screenName };
         if (!io.sockets.adapter.rooms.has(roomId) && type !== 'interpreter' && type !== 'customer')
             socket.disconnect();
         else if (!io.sockets.adapter.rooms.has(roomId) && (type === 'interpreter' || type === 'customer'))
@@ -140,8 +141,10 @@ io.on("connection", socket =>
             {
                 createRoomData(roomId, type === 'customer' ? signumId : null, type === 'interpreter' ? signumId : null, peerId);
                 socket.join(roomId);
-                socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId);
-                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId) );
+                socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId, screenNameRef.current, videoDivId );
+                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
+                socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
+                socket.on('newChatMessage', (screenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, screenName, message, datetimeUTC));
             }
             else
                 socket.disconnect();
@@ -152,15 +155,19 @@ io.on("connection", socket =>
             {
                 createRoomData(roomId, type === 'customer' ? signumId : null, type === 'interpreter' ? signumId : null, peerId);
                 socket.join(roomId);
-                socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId);
-                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId) );
+                socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId, screenNameRef.current, videoDivId );
+                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
+                socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
+                socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
             }
             else
             {
                 createRoomData(roomId, null, null, peerId);
                 socket.join(roomId);
-                socket.broadcast.to(roomId).emit('userJoined', 'guest', null, peerId);
-                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId) );
+                socket.broadcast.to(roomId).emit('userJoined', 'guest', null, peerId, screenNameRef.current, videoDivId);
+                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current) );
+                socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
+                socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
             }
         }
     });

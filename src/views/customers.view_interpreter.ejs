@@ -1,0 +1,21 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<% if (intrObj) { %>
+    <div class="frame">
+        <% if (intrObj.get("photo_filename")) { %>
+            <div class="h-52 text-center">
+                <img class="inline-block max-h-[100%] w-auto" src="/uploads/interpreters/<%= intrObj.get('photo_filename') %>" alt="Foto de perfil"/>
+            </div>
+        <% } else { %>
+            <p class="text-center">Sem foto</p>
+        <% } %>
+    
+        <%- include('components/ext_label', { props: { label: "Nome", labelBold:true, children: helperFns.escapeHtml(intrObj.get("name") ?? '') }}) %>
+        <%- include('components/ext_label', { props: { label: "Sobre", labelBold:true, lineBreak: true, children: 
+        `<div class="whitespace-pre-line">${helperFns.escapeHtml(intrObj.get("description") ?? '')}</div>`
+        }}) %>
+
+        <%- include('components/ext_label', { props: { label: "Sessões trabalhadas", labelBold: true, children: helperFns.escapeHtml(String(intrObj.otherProperties.sessionsWorkedAt)) }}) %>
+        <%- include('components/ext_label', { props: { label: "Minutos trabalhados", labelBold: true, children: helperFns.escapeHtml(String(intrObj.otherProperties.totalMinutes)) }}) %>
+    </div>
+<% } %>

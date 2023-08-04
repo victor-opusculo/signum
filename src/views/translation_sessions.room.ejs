@@ -7,7 +7,7 @@
     grid-gap: 10px;
     height:80%;
     position: relative;
-    grid-template-columns: repeat(auto-fill, 300px);
+    grid-template-columns: repeat(auto-fill, 400px);
     grid-auto-rows: 300px;
   }
 
@@ -17,12 +17,13 @@
     width: 100%;
     height: 100%;
     object-fit:cover;
-    border:2px solid white;
+    border:1px solid darkgray;
   }
 </style>
 <script type="text/javascript">
   var roomID = "<%= roomId %>";
   var userType = "<%= userData.type %>";
+  var screenName = "<%= userData.screenName %>"
   var userId = "<%= userData.id || 0 %>";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js" defer></script>
@@ -34,15 +35,31 @@
   <div id="videoDiv" class="grow">
 
   </div>
-  <div id="chatDiv" class="lg:w-1/4 w-full bg-white rounded flex flex-col p-2 m-2">
-      <div class="min-h-[300px] max-h-[500px] overflow-y-auto">
+  <div id="chatDiv" class="lg:w-1/4 w-[calc(100%-16px)] lg:max-h-screen bg-white rounded flex flex-col p-2 m-2">
+      <div class="min-h-[300px] max-h-screen overflow-y-auto">
           <ul id="chatMessageList" class="list-disc ml-4">
 
           </ul>
       </div>
       <div class="flex flex-row">
-          <input type="text" class="grow" placeholder="Sua mensagem..." size="10" id="txtChatNewMessage" maxlength="1000"/>
+          <input type="text" class="grow" placeholder="Sua mensagem..." size="6" id="txtChatNewMessage" maxlength="1000"/>
           <button type="button" class="btn ml-2 shrink" id="btnChatSendMessage" onclick="sendChatMessage(event)">Enviar</button>
       </div>
   </div>
+</div>
+<div class="bg-neutral-700 rounded mt-2 p-2 text-white">
+    <label class="mr-4">
+        <input type="checkbox" checked onchange="toggleVideo(event)" /> Habilitar meu vídeo
+    </label>
+    <label class="mr-4">
+        <input type="checkbox" checked onchange="toggleAudio(event)" /> Habilitar meu áudio
+    </label>
+    <label class="mr-4">
+        <input type="checkbox" onchange="switchCameraOrScreenShare(event)"/> Compartilhar tela
+    </label>
+    <label>
+        Mudar meu nome para: <input type="text" size="20" class="bg-neutral-800" maxlength="100" id="txtNewScreenName" />
+        <button type="button" class="btn ml-2 py-1" onclick="sendNameChange();">Alterar</button>
+    </label>
+    
 </div>

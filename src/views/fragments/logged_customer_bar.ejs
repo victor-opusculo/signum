@@ -1,5 +1,8 @@
 <div class="flex flex-row bg-white p-2 border border-neutral-300 mb-2">
     <span class="grow">Cliente: <%= customerName %></span>
+    <% if (typeof customerMinutes === "number") { %>
+        <span class="shrink mr-2"><%= customerMinutes >= 0 ? `(${customerMinutes} minutos disponíveis)` : `(Saldo negativo de ${customerMinutes} minutos)` %></span>
+    <% } %>
     <span class="shrink">
         <a class="btn py-1" href="/script/customers_logoff">Sair</a>
     </span>
