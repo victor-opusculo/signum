@@ -116,5 +116,19 @@ export class customers extends BaseController
         this.pageData.intrObj = intr;
     }
 
-    
+    public async exchangeminutes()
+    {
+        this._pageTitle = "Signum | Transferir minutos";
+        this._pageSubtitle = "Transferir minutos";
+
+        const [ custId, custName, custMinutesAvailable ] = await Customer.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.customerName = custName;
+        this.pageData.customerId = custId;
+        this.pageData.customerMinutes = custMinutesAvailable;
+
+        const allCustomers = await new Customer({ organization_id: this._loadedOrganization?.get("id") ?? 0 })
+        .getMultipleFromOrganization(connection(), '', '');
+
+        this.pageData.allCustomers = allCustomers;
+    }
 }

@@ -8,6 +8,7 @@
         <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" maxlength="140" required />` }}) %>
         <%- include('components/ext_label', { props: { label: "Senha", children: `<input type="text" maxlength="140" required name="txtPassword"/>` }}) %>
         <div class="text-center">
+            <input type="hidden" name="isOrganizationEdit" value="1" />
             <button type="submit" class="btn">Salvar</button>
         </div>
     </form>

@@ -201,6 +201,7 @@ export abstract class DataEntity<Props extends PropertiesGroup>
 
     public async save(conn: Knex) : Promise<DatabaseActionReturnInfos>
     {
+        
         const self = this.constructor as typeof DataEntity;
 
         let gotten: DataEntity<Props>|null = null;

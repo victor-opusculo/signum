@@ -41,7 +41,10 @@ export class Customer extends DataEntity<CustomerProperties>
             last_login_token: new DataProperty()
         }, intitialValues);
 
-        this.properties.is_active.valueTransformer = value => this.otherProperties.chkIsActive ? 1 : 0;
+        this.properties.is_active.valueTransformer = value => this.otherProperties.isOrganizationEdit ? 
+        (this.otherProperties.chkIsActive ? 1 : 0)
+        :
+        value;
     }
 
     public static readonly databaseTable: string = 'customers';

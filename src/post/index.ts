@@ -10,3 +10,4 @@ export * from './customers_login';
 export * from './customers_editprofile';
 export * from './customers_schsessions_create';
 export * from './customers_schsessions_delete';
+export * from './customers_exchangeminutes';

@@ -18,6 +18,7 @@ export default async function controllerApplier(request: Request, response: Resp
     try
     {
         const cont = new (controllers as any)[request.params.controller](request, response);
+        cont.loadedOrganization = loadedOrganization ?? undefined;
         await cont.runAction(request.params.action ?? 'home');
         response.render('index', { loadedOrganization, request, response, controller: cont, idParam: request.params.id ?? undefined, pageMessages: cont.pageMessages, helperFns });
     }
