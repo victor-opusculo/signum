@@ -1,0 +1,60 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+    <form method="post" action="/post/customers_schsessions_create" onsubmit="return Signum.Customers.SchSessions.Create.onSubmit(event)">
+        <%- include('components/ext_label', { props: { label: "Data e hora de início", children:
+        `<input type="date" id="schDateBegin" required />
+         <input type="time" step="1" id="schTimeBegin" required />`
+         }} ) %>
+
+        <%- include('components/ext_label', { props: { label: "Data e hora previstas de término", children:
+        `<input type="date" id="schDateEnd" required />
+        <input type="time" step="1" id="schTimeEnd" required />`
+        }} ) %>
+
+        <%- include('components/ext_label', { props: { label: "Breve descrição da sessão", children:
+        `<input type="text" size="40" maxlength="130" name="schDescription" />` 
+        }} ) %>
+
+        <div class="text-center">
+            <input type="hidden" name="schDateTime" id="schDateTime" value="" />
+            <input type="hidden" name="schExpEndDateTime" id="schExpEndDateTime" value="" />
+            <button type="submit" class="btn">Criar</button>
+        </div>
+    </form>
+    <script>
+        Signum.Customers = Signum.Customers || {};
+        Signum.Customers.SchSessions = Signum.Customers.SchSessions || {};
+
+        Signum.Customers.SchSessions.Create = {};
+        Signum.Customers.SchSessions.Create.onSubmit = function(e)
+        {
+            const beginDateTime = new Date(document.getElementById('schDateBegin').value
+                 + ' ' +
+                 document.getElementById('schTimeBegin').value
+                 );
+
+            const endDateTime = new Date(document.getElementById('schDateEnd').value
+                 + ' ' +
+                 document.getElementById('schTimeEnd').value
+                 );
+
+            if (beginDateTime <= new Date())
+            {
+                alert("Escolha uma data e horário futuros. Você definiu um momento anterior ao agora.");
+                return false;
+            } 
+
+            if (beginDateTime > endDateTime)
+            {
+                alert("Você definiu a data e horário de início após a data e horário de término previstos.");
+                return false;
+            }
+
+            document.getElementById('schDateTime').value = beginDateTime.toISOString();
+            document.getElementById('schExpEndDateTime').value = endDateTime.toISOString();
+
+            return true;
+        };
+    </script>
+</div>

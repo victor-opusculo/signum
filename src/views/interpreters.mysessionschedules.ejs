@@ -1,0 +1,11 @@
+<%- include('fragments/logged_interpreter_bar', { interpreterName }) %>
+
+<div class="frame">
+    <%- include('components/data_grid', { props:
+    {
+        detailsUrl: '/page/interpreters/viewsessionschedule/{param}',
+        useHeaders: true,
+        columnsToHide: ['id'],
+        data: sessionData
+    }}) %>
+</div>

@@ -1,0 +1,35 @@
+<%- include('fragments/logged_interpreter_bar', { interpreterName }) %>
+
+<% if (sessObj) { %>
+    <div class="frame">
+        <%- include('components/ext_label', { props: { label: "Data e horário agendados", labelBold: true, children: helperFns.escapeHtml(sessObj.get("scheduled_datetime").toLocaleString()) }}) %>
+        <%- include('components/ext_label', { props: { label: "Data e horário de términos previstos", labelBold: true, children: helperFns.escapeHtml(sessObj.get("expected_end_datetime").toLocaleString()) }}) %>
+        <%- include('components/ext_label', { props: { label: "Descrição", labelBold: true, children: helperFns.escapeHtml(sessObj.get("description")) }}) %>
+        <br/>
+        <%- include('components/ext_label', { props: { label: "Cliente", labelBold: true, children: 
+        sessObj.otherProperties.customerName ?? ''
+        }}) %>
+        <%- include('components/ext_label', { props: { label: "Organização", labelBold: true, children: 
+        sessObj.otherProperties.organizationName ?? ''
+        }}) %>
+        <br/>
+        <% if (sessObj.get("interpreter_id") == interpreterId) { %>
+            <%- include('components/ext_label', { props: { label: "Sala de sessão", labelBold: true, children: 
+            sessObj.get("room_id") ?
+                `<a class="link" href="/page/translation_sessions/room/${sessObj.get('room_id')}">Já definida! Clique aqui para abrir.</a>`
+            :
+            'Ainda não definida'
+            }}) %>
+
+            <div class="text-center">
+                <a class="btn" href="/script/interpreters_unsignsessionschedule?id=<%= sessObj.get("id") %>">Cancelar participação neste trabalho</a>
+            </div>
+        <% } %>
+        <% if (!sessObj.get("interpreter_id")) { %>
+            <div class="text-center">
+                <a class="btn" href="/script/interpreters_signsessionschedule?id=<%= sessObj.get("id") %>">Aceitar este trabalho</a>
+            </div>
+        <% } %>
+    </div>
+    <% } %>
+    

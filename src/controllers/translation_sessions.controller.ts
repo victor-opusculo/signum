@@ -22,8 +22,8 @@ export class translation_sessions extends BaseController
         const intrToken = this.request.cookies.interpreterToken ?? '';
         const customerToken = this.request.cookies.customerToken ?? '';
         
-        let interpreterPl: Record<string, any>|null; 
-        let customerPl: Record<string, any>|null; 
+        let interpreterPl: Record<string, any>|null = null; 
+        let customerPl: Record<string, any>|null = null; 
         let screenName: string = '';
 
         try 
@@ -34,20 +34,23 @@ export class translation_sessions extends BaseController
         }
         catch (err) { interpreterPl = null; }
 
-        try 
-        { 
-            customerPl = await jwt.verify(customerToken, process.env.SIGNUM_CUSTOMERS_JWT_SECRET as string); 
-            const cust = await new Customer({ id: customerPl?.customerId }).getSingle(connection()) as Customer;
-            screenName = cust.get("name") ?? '(sem nome)';
-            
-            if (!cust.hasMinutesAvailable())
-                throw new CustomerZeroMinutes(undefined, cust.get("minutes_available") ?? 0, `/page/homepage/home?messages=Seu saldo de minutos está esgotado!`);
-        }
-        catch (err) 
-        { 
-            customerPl = null; 
-            if (err instanceof CustomerZeroMinutes)
-                throw err;
+        if (!interpreterPl)
+        {
+            try 
+            { 
+                customerPl = await jwt.verify(customerToken, process.env.SIGNUM_CUSTOMERS_JWT_SECRET as string); 
+                const cust = await new Customer({ id: customerPl?.customerId }).getSingle(connection()) as Customer;
+                screenName = cust.get("name") ?? '(sem nome)';
+                
+                if (!cust.hasMinutesAvailable())
+                    throw new CustomerZeroMinutes(undefined, cust.get("minutes_available") ?? 0, `/page/homepage/home?messages=Seu saldo de minutos está esgotado!`);
+            }
+            catch (err) 
+            { 
+                customerPl = null; 
+                if (err instanceof CustomerZeroMinutes)
+                    throw err;
+            }
         }
         
         if (interpreterPl)

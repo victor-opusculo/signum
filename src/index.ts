@@ -10,6 +10,7 @@ import scriptApplier from './lib/middlewares/scriptApplier.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv-flow';
 import { verifyTokens } from './lib/helpers/verifyTokensForSocket.js';
+import { register } from './lib/helpers/statisticsManager.js';
 
 dotenv.config();
 
@@ -184,3 +185,5 @@ server.on('upgrade', (req, socket, head) => {
   });
 
 server.listen(port, () => console.log('Signum videochat server running on port ' + port));
+
+register(roomsData, interpretersWaitingIds, customersWaitingRoomIds);

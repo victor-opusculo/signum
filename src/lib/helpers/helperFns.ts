@@ -4,7 +4,10 @@ import querystring from 'node:querystring';
 export default {
     escapeHtml: (unsafe: string) => 
     {
-        return (unsafe ?? '')
+        if (typeof unsafe !== "string")
+            return '';
+
+        return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -24,5 +27,13 @@ export default {
         const queries = querystring.stringify(query);
         //Object.entries(query).reduce( (prev, keyVal) => (prev ? prev + '&' : '') + `${keyVal[0]}=${keyVal[1]}`, '');
         return base + '?' + queries;
+    },
+
+    truncateText: (text: string, maxLength: number) : string =>
+    {
+        if (text.length <= maxLength)
+            return text;
+
+        return text.substring(0, maxLength) + '...';
     }
 }

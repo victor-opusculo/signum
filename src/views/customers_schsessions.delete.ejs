@@ -1,0 +1,17 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<% if (sessObj) { %>
+    <div class="frame">
+        <form method="post" action="/post/customers_schsessions_delete?id=<%= sessObj.get("id") %>">
+
+            <%- include('components/ext_label', { props: { label: "Data e horário agendados", labelBold: true, children: helperFns.escapeHtml(sessObj.get("scheduled_datetime").toLocaleString()) }}) %>
+            <%- include('components/ext_label', { props: { label: "Data e horário de términos previstos", labelBold: true, children: helperFns.escapeHtml(sessObj.get("expected_end_datetime").toLocaleString()) }}) %>
+            <%- include('components/ext_label', { props: { label: "Descrição", labelBold: true, children: helperFns.escapeHtml(sessObj.get("description")) }}) %>
+
+            <div class="text-center">
+                <button type="submit" class="btn mr-4">Sim, excluir</a>
+                <button type="button" class="btn" onclick="history.back();">Não excluir</button>
+            </div>
+        </form>
+    </div>    
+<% } %>

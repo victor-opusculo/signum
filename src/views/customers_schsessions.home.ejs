@@ -1,0 +1,17 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+
+    <div class="my-4">
+        <a class="btn" href="/page/customers_schsessions/create">Agendar nova sessão</a>
+    </div>
+    <%- include('components/data_grid', { props:
+    {
+        detailsUrl: '/page/customers_schsessions/view/{param}',
+        deleteUrl: '/page/customers_schsessions/delete/{param}',
+        useHeaders: true,
+        columnsToHide: ['id'],
+        data: sessionData
+    }}) %>
+
+</div>

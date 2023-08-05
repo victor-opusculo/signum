@@ -1,2 +1,7 @@
 
-<h1>Hello!</h1>
+<h3>No momento temos:</h3>
+<ul class="list-disc mx-auto w-72 ">
+    <li><%= sessionCount >= 2 ? sessionCount + ' sessões em andamento' : sessionCount + ' sessão em andamento' %>;</li>
+    <li><%= intrWaitingCount >= 2 ? intrWaitingCount + ' intérpretes disponíveis ' : intrWaitingCount + ' intérprete disponível '%> para atendimento imediato;</li>
+    <li><%= custWaitingCount >= 2 ? custWaitingCount + ' clientes aguardando intérprete' : custWaitingCount + ' cliente aguardando intérprete' %>.</li>
+</ul>

@@ -94,6 +94,9 @@ export class customers extends BaseController
 
     public async view_interpreter()
     {
+        this._pageTitle = "Signum | Ver intérprete";
+        this._pageSubtitle = "Ver intérprete";
+
         const [ custId, custName, custMinutesAvailable ] = await Customer.checkLoginOnPage(connection(), this.request, this.response);
         this.pageData.customerName = custName;
         this.pageData.customerMinutes = custMinutesAvailable;
@@ -113,13 +116,5 @@ export class customers extends BaseController
         this.pageData.intrObj = intr;
     }
 
-    public async create_scheduled_session()
-    {
-        this._pageTitle = "Signum | Agendar sessão";
-        this._pageSubtitle = "Agendar sessão";
-
-        const [ custId, custName, custMinutesAvailable ] = await Customer.checkLoginOnPage(connection(), this.request, this.response);
-        this.pageData.customerName = custName;
-        this.pageData.customerMinutes = custMinutesAvailable;
-    }
+    
 }
