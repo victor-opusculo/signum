@@ -76,11 +76,11 @@ main
     padding: 0.5em;
 }
 
-#growableToFooter { min-height: calc(100vh - 80px); }
+#growableToFooter { min-height: calc(100vh - 100px); }
 
 footer 
 {
-    height: 80px;
+    height: 100px;
     @apply bg-slate-800 text-white p-4 text-center
 }
 

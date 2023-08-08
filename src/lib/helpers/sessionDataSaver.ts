@@ -6,31 +6,36 @@ import dayjs from 'dayjs';
 export type SessionData = 
 {
     id: string,
-    interpreterId: { peerId: string, signumId: number }|null,
-    customerId: { peerId: string, signumId: number }|null,
+    interpreterId: ({ peerId: string, signumId: number })[],
+    interpretersHistory: ({ peerId: string, signumId: number })[],
+    customerId: { peerId: string|null, signumId: number }|null,
     guests: string[],
     beginTime: Date|undefined,
-    endTime?: Date|undefined
+    endTime?: Date|undefined,
+    createdByGuest: boolean
 };
 
 export async function saveTranslationSessionData(data: SessionData)
 {
-    if (!data.interpreterId || !data.customerId || !data.beginTime) return; // Ignore sessions without interpreters or clients
+    if (data.interpretersHistory.length < 1 || !data.customerId || !data.beginTime) return; // Ignore sessions without interpreters or clients
 
     const session = new TranslationSession();
 
-    session.set('interpreter_id', data.interpreterId.signumId);
+    const lastIntr = data.interpretersHistory[data.interpretersHistory.length - 1]; 
+    session.set('interpreter_id', lastIntr.signumId);
     session.set('customer_id', data.customerId.signumId);
     session.set('begin', data.beginTime);
     session.set('end', data.endTime ?? new Date());
     session.set('guests', data.guests.length);
     session.set('evaluation_points', null);
 
-    await session.save(connection());
+    const result = await session.save(connection());
 
     const begin = dayjs(data.beginTime);
     const end = dayjs(data.endTime ?? new Date());
     const diffMinutes = end.diff(begin, "minutes");
     
     await Customer.debtSessionMinutes(connection(), data.customerId.signumId, diffMinutes);
+
+    return result.newId ?? null;
 }

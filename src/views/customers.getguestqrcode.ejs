@@ -1,0 +1,6 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+    <p>Imprima e/ou publique o QR Code abaixo para permitir aos visitantes gerar salas de tradução. Basta abrir o link e uma nova sala será criada!</p>
+    <img src="<%- qrCodeUrlData %>" width="400" alt="QR Code" title="QR Code" />
+</div>

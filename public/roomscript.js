@@ -56,7 +56,7 @@ function afterEnableMedia(stream)
         myPeerId = peerId;
         const userSignumId = Number(userId) || null; 
         const token = userType === 'interpreter' ? Cookies.get('interpreterToken') : (userType === 'customer' ? Cookies.get('customerToken') : null);
-        socket.emit("newUser", userType, userSignumId, token, peerId, roomID, screenName, myVideoDivId);
+        socket.emit("newUser", userType, userSignumId, token, peerId, roomID, screenName, myVideoDivId, relatedCustomerId || null);
     });
 
     peer.on('error' , (err)=>{
@@ -102,7 +102,7 @@ socket.on('userDisconnect' , (type, signumId, peerId, userScreenName)=>
     if (peerConnections[peerId])
         peerConnections[peerId].close();
 
-    if (type === 'interpreter' && userType === 'customer')
+    if (type === 'interpreter' && (userType === 'customer' || userType === 'guest'))
         addCallInterpreterButton();
 
     if (type === 'interpreter')
@@ -110,6 +110,31 @@ socket.on('userDisconnect' , (type, signumId, peerId, userScreenName)=>
     else
         sendRoomNotificationInChat(`${userScreenName} saiu da sala.`);
 });
+
+socket.on('sessionSurvey', sessId =>
+{
+    console.log(sessId, 'aaa');
+
+    if (((userType === 'guest' && relatedCustomerId) || userType === 'customer') && sessId)
+    {
+        document.getElementById('divSurvey').classList.add('flex');
+        document.getElementById('divSurvey').classList.remove('hidden');
+
+        document.getElementById('btnSendSurvey').onclick = function()
+        {
+            const form = document.getElementById('frmSessionSurvey');
+            const points = form.elements['surveyPoints'].value !== '' ? Number(form.elements['surveyPoints'].value) : null;
+
+            const headers = new Headers();
+            headers.append('Content-Type', 'application/json');
+            const body = JSON.stringify({ data: { points, sessId } });
+            fetch('/script/translation_sessions_savesurvey', { headers, body, method: 'POST' });
+
+            document.getElementById('divSurvey').classList.add('hidden');
+            document.getElementById('divSurvey').classList.remove('flex');
+        };
+    }
+})
 
 socket.on('chatMessageReceived', receiveChatMessage);
 socket.on('screenNameChanged', receiveScreenNameChange);
@@ -318,5 +343,5 @@ enableMedia().then(afterEnableMedia).catch( () =>
     }
 });
 
-if (userType === 'customer')
+if (userType === 'customer' || userType === 'guest')
   addCallInterpreterButton();

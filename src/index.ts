@@ -36,14 +36,22 @@ app.get('/', (req, res) => res.redirect('/page/homepage'));
 
 const roomsData: SessionData[] = [];
 
-function createRoomData(roomId: string, customerId: number|null, interpreterId: number|null, peerId: string)
+function createRoomData(roomId: string, customerId: number|null, interpreterId: number|null, peerId: string, createdByGuest: boolean)
 {
     const existent = roomsData.find( r => r.id === roomId );
 
     if (existent)
     {
         existent.customerId ??= customerId ? { peerId, signumId: customerId } : null;
-        existent.interpreterId ??= interpreterId ? { peerId, signumId: interpreterId } : null;
+
+        if (!existent.interpreterId.find( intr => intr.signumId === interpreterId ) && interpreterId)
+            existent.interpreterId.push({ peerId, signumId: interpreterId });
+
+        if (!existent.interpretersHistory.find( intr => intr.signumId === interpreterId ) && interpreterId)
+            existent.interpretersHistory.push({ peerId, signumId: interpreterId });
+
+        if (interpreterId && !existent.beginTime)
+            existent.beginTime = new Date();
 
         if (!customerId && !interpreterId)
             existent.guests.push(peerId);
@@ -53,11 +61,13 @@ function createRoomData(roomId: string, customerId: number|null, interpreterId: 
         roomsData.push(
         {
             id: roomId,
-            interpreterId: interpreterId ? { peerId, signumId: interpreterId } : null,
-            customerId: customerId ? { peerId, signumId: customerId } : null,
-            guests: [],
+            interpreterId: interpreterId ? [{ peerId, signumId: interpreterId }] : [],
+            interpretersHistory: interpreterId ? [{ peerId, signumId: interpreterId }] : [],
+            customerId: customerId ? { peerId: createdByGuest ? null : peerId, signumId: customerId } : null,
+            guests: createdByGuest ? [ peerId ] : [],
             beginTime: new Date(),
-            endTime: undefined
+            endTime: undefined,
+            createdByGuest: createdByGuest
         });
     }
 }
@@ -69,18 +79,36 @@ function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId
 {
     socket.broadcast.to(roomId).emit('userDisconnect', type, signumId, peerId, screenName);
 
-    if (type === 'customer')
-        io.in(roomId).disconnectSockets();
+    if (type === 'interpreter')
+    {
+        const room = roomsData.find(r => r.id === roomId);
+        if (room)
+        {
+            const intrIndex = room.interpreterId.findIndex( intr => intr.signumId === signumId );
+            if (intrIndex >= 0) 
+                room.interpreterId.splice(intrIndex, 1);
+
+            if (room.interpreterId.length < 1)
+            {
+                room.endTime = new Date();
+                saveTranslationSessionData(room)
+                .then(sessId => socket.broadcast.to(roomId).emit('sessionSurvey', sessId))
+                .finally(() => 
+                {
+                    room.beginTime = undefined;
+                    room.interpreterId = [];
+                }).catch(console.log);
+            }
+        }
+    }
+    //    io.in(roomId).disconnectSockets();
 
     let room = io.sockets.adapter.rooms.get(roomId);
     if (!room)
     {
         const room = roomsData.find(r => r.id === roomId);
         if (room)
-        {
-            room.endTime = new Date();
-            saveTranslationSessionData(room).finally(() => roomsData.splice(roomsData.indexOf(room), 1)).catch(console.log);
-        }
+            roomsData.splice(roomsData.indexOf(room), 1);
     }
 }
 
@@ -131,16 +159,16 @@ io.on("connection", socket =>
         }
     })
 
-    socket.on("newUser", async (type, signumId, token, peerId, roomId, screenName, videoDivId) =>
+    socket.on("newUser", async (type, signumId, token, peerId, roomId, screenName, videoDivId, customerIdRelated) =>
     {
         let screenNameRef = { current: screenName };
-        if (!io.sockets.adapter.rooms.has(roomId) && type !== 'interpreter' && type !== 'customer')
+        if (!io.sockets.adapter.rooms.has(roomId) && type !== 'interpreter' && type !== 'customer' && !customerIdRelated)
             socket.disconnect();
-        else if (!io.sockets.adapter.rooms.has(roomId) && (type === 'interpreter' || type === 'customer'))
+        else if (!io.sockets.adapter.rooms.has(roomId) && (type === 'interpreter' || type === 'customer' || customerIdRelated))
         {
-            if (await verifyTokens(type, signumId, token))
+            if (await verifyTokens(type, signumId, token) || customerIdRelated)
             {
-                createRoomData(roomId, type === 'customer' ? signumId : null, type === 'interpreter' ? signumId : null, peerId);
+                createRoomData(roomId, type === 'customer' ? signumId : (customerIdRelated ? customerIdRelated : null), type === 'interpreter' ? signumId : null, peerId, Boolean(customerIdRelated));
                 socket.join(roomId);
                 socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId, screenNameRef.current, videoDivId );
                 socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
@@ -152,15 +180,21 @@ io.on("connection", socket =>
         }
         else if (io.sockets.adapter.rooms.has(roomId))
         {
+            let custId: number|null = null;
+            let intrId: number|null = null;
             if (await verifyTokens(type, signumId, token))
             {
-                createRoomData(roomId, type === 'customer' ? signumId : null, type === 'interpreter' ? signumId : null, peerId);
-                socket.join(roomId);
-                socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId, screenNameRef.current, videoDivId );
-                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
-                socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
-                socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
+                custId = type === 'customer' ? signumId : null;
+                intrId = type === 'interpreter' ? signumId : null;
             }
+
+            createRoomData(roomId, custId, intrId, peerId, false);
+            socket.join(roomId);
+            socket.broadcast.to(roomId).emit('userJoined', type, signumId, peerId, screenNameRef.current, videoDivId );
+            socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
+            socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
+            socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
+            /*}
             else
             {
                 createRoomData(roomId, null, null, peerId);
@@ -169,7 +203,7 @@ io.on("connection", socket =>
                 socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current) );
                 socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
                 socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
-            }
+            }*/
         }
     });
 });

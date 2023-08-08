@@ -1,9 +1,11 @@
 import { Customer } from "../lib/model/customers/Customer";
 import connection from "../lib/model/database/connection";
 import { CustomerZeroMinutes } from "../lib/model/exceptions/CustomerZeroMinutes";
+import { RedirectTo } from "../lib/model/exceptions/RedirectTo";
 import { Interpreter } from "../lib/model/interpreters/Interpreter";
 import { BaseController } from "./BaseController";
 import jwt from 'jwt-promisify';
+import { v4 as uuidv4 } from 'uuid';
 
 export class translation_sessions extends BaseController
 {
@@ -15,6 +17,10 @@ export class translation_sessions extends BaseController
         this._pageSubtitle = 'Sessão';
 
         const roomId = this.request.params.id || undefined;
+
+        let relatedCustomerId: number|undefined;
+        if (this.request.query.related_customer_id)
+            relatedCustomerId = Number(this.request.query.related_customer_id)
 
         if (!roomId)
             return this.response.redirect('/homepage/home?messages=' + 'ID de sala não presente!');
@@ -73,9 +79,21 @@ export class translation_sessions extends BaseController
             this.pageData.userData =
             {
                 type: 'guest',
-                screenName: 'Visitante'
+                screenName: 'Visitante',
+                relatedCustomerId: relatedCustomerId ?? ''
             };
 
         this.pageData.roomId = roomId;
+    }
+
+    public async guestsession()
+    {
+        const relatedCustomerId = Number(this.request.params.id ?? '***');
+        const custExists = await new Customer({ id: relatedCustomerId }).existsId(connection());
+
+        if (custExists)
+            throw new RedirectTo(`/page/translation_sessions/room/${uuidv4()}?related_customer_id=${relatedCustomerId}`);
+        else
+            throw new RedirectTo(`/page/homepage/home?messages=Cliente informado não localizado`);
     }
 }

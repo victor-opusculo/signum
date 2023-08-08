@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { RedirectTo } from "../lib/model/exceptions/RedirectTo";
 import { Interpreter } from "../lib/model/interpreters/Interpreter";
 import transformDataRows from "../lib/helpers/transformDataRows";
+import QRCode from 'qrcode';
 
 export class customers extends BaseController
 {
@@ -130,5 +131,21 @@ export class customers extends BaseController
         .getMultipleFromOrganization(connection(), '', '');
 
         this.pageData.allCustomers = allCustomers;
+    }
+
+    public async getguestqrcode()
+    {
+        this._pageTitle = "Signum | Gerar QR Code para visitantes";
+        this._pageSubtitle = "Gerar QR Code para visitantes";
+
+        const [ custId, custName, custMinutesAvailable ] = await Customer.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.customerName = custName;
+        this.pageData.customerId = custId;
+        this.pageData.customerMinutes = custMinutesAvailable;
+
+        const qrCodeContent = process.env.SIGNUM_HOSTNAME + '/page/translation_sessions/guestsession/' + custId;
+        const qrCodeUrlData = await QRCode.toDataURL(qrCodeContent);
+
+        this.pageData.qrCodeUrlData = qrCodeUrlData;
     }
 }

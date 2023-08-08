@@ -25,6 +25,7 @@
   var userType = "<%= userData.type %>";
   var screenName = "<%= userData.screenName %>"
   var userId = "<%= userData.id || 0 %>";
+  var relatedCustomerId = "<%= userData.relatedCustomerId ?? '' %>";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js" defer></script>
 <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" defer></script>
@@ -61,5 +62,74 @@
         Mudar meu nome para: <input type="text" size="20" class="bg-neutral-800" maxlength="100" id="txtNewScreenName" />
         <button type="button" class="btn ml-2 py-1" onclick="sendNameChange();">Alterar</button>
     </label>
-    
+</div>
+
+<div id="divSurvey" class="hidden absolute top-0 bottom-0 left-0 right-0 z-10 bg-black/70 items-center justify-center">
+    <div class="bg-white rounded py-4 px-2">
+        <h3 class="text-center m-2 font-bold">Como você avaliaria esta sessão de tradução?</h3>
+        <form id="frmSessionSurvey" class="flex flex-row flex-wrap">
+          <input id="surveyGradeN" class="hidden peer/nd" type="radio" name="surveyPoints" checked value="" />
+          <label for="surveyGradeN" class="flex items-center justify-center font-bold peer-checked/nd:bg-blue-600 border peer-checked/nd:text-white border-neutral-400 rounded-full w-18 h-10 p-2 mr-2">
+              <span>Não avaliar</span>
+          </label>
+
+          <input id="surveyGrade0" class="hidden peer/zero" type="radio" name="surveyPoints" value="0" />
+          <label for="surveyGrade0" class="flex items-center justify-center font-bold peer-checked/zero:bg-blue-600 border peer-checked/zero:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>0</span>
+          </label>
+
+          <input id="surveyGrade1" class="hidden peer/one" type="radio" name="surveyPoints" value="1" />
+          <label for="surveyGrade1" class="flex items-center justify-center font-bold peer-checked/one:bg-blue-600 border peer-checked/one:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>1</span>
+          </label>
+
+          <input id="surveyGrade2" class="hidden peer/two" type="radio" name="surveyPoints" value="2" />
+          <label for="surveyGrade2" class="flex items-center justify-center font-bold peer-checked/two:bg-blue-600 border peer-checked/two:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>2</span>
+          </label>
+
+          <input id="surveyGrade3" class="hidden peer/three" type="radio" name="surveyPoints" value="3" />
+          <label for="surveyGrade3" class="flex items-center justify-center font-bold peer-checked/three:bg-blue-600 border peer-checked/three:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>3</span>
+          </label>
+
+          <input id="surveyGrade4" class="hidden peer/four" type="radio" name="surveyPoints" value="4" />
+          <label for="surveyGrade4" class="flex items-center justify-center font-bold peer-checked/four:bg-blue-600 border peer-checked/four:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>4</span>
+          </label>
+
+          <input id="surveyGrade5" class="hidden peer/five" type="radio" name="surveyPoints" value="5" />
+          <label for="surveyGrade5" class="flex items-center justify-center font-bold peer-checked/five:bg-blue-600 border peer-checked/five:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>5</span>
+          </label>
+
+          <input id="surveyGrade6" class="hidden peer/six" type="radio" name="surveyPoints" value="6" />
+          <label for="surveyGrade6" class="flex items-center justify-center font-bold peer-checked/six:bg-blue-600 border peer-checked/six:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>6</span>
+          </label>
+
+          <input id="surveyGrade7" class="hidden peer/seven" type="radio" name="surveyPoints" value="7" />
+          <label for="surveyGrade7" class="flex items-center justify-center font-bold peer-checked/seven:bg-blue-600 border peer-checked/seven:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>7</span>
+          </label>
+
+          <input id="surveyGrade8" class="hidden peer/eight" type="radio" name="surveyPoints" value="8" />
+          <label for="surveyGrade8" class="flex items-center justify-center font-bold peer-checked/eight:bg-blue-600 border peer-checked/eight:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>8</span>
+          </label>
+
+          <input id="surveyGrade9" class="hidden peer/nine" type="radio" name="surveyPoints" value="9" />
+          <label for="surveyGrade9" class="flex items-center justify-center font-bold peer-checked/nine:bg-blue-600 border peer-checked/nine:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>9</span>
+          </label>
+
+          <input id="surveyGrade10" class="hidden peer/ten" type="radio" name="surveyPoints" value="10" />
+          <label for="surveyGrade10" class="flex items-center justify-center font-bold peer-checked/ten:bg-blue-600 border peer-checked/ten:text-white border-neutral-400 rounded-full w-10 h-10 mr-2">
+              <span>10</span>
+          </label>
+      </form>
+      <div class="text-center mt-4">
+          <button type="button" class="btn" id="btnSendSurvey">Enviar</button>
+      </div>
+    </div>
 </div>

@@ -55,6 +55,16 @@ export class Customer extends DataEntity<CustomerProperties>
         return (this.get("minutes_available") ?? 0) > 0;
     }
 
+    public async existsId(conn: Knex) : Promise<boolean>
+    {
+        const count = await conn(Customer.databaseTable)
+        .where({ id: this.get("id") ?? 0 })
+        .count("id", { as: 'count' });
+
+        const dr = count.pop();
+        return Boolean(dr && dr.count && Number(dr.count) > 0);
+    }
+
     public async existsUsername(conn: Knex)
     {
         const count = await conn(Customer.databaseTable)
@@ -63,7 +73,20 @@ export class Customer extends DataEntity<CustomerProperties>
         .count("id", { as: 'count' });
 
         const dr = count.pop();
-        return (dr && dr.count && Number(dr.count) > 0);
+        return Boolean(dr && dr.count && Number(dr.count) > 0);
+    }
+
+    public async getSingleByUsername(conn: Knex) : Promise<Customer>
+    {
+        const gotten = await conn<CustomerAttributes>(Customer.databaseTable)
+        .where({ username: this.get("username") ?? '***' })
+        .select("*")
+        .first();
+        
+        if (!gotten)
+            throw new DatabaseEntityNotFound("Cliente não localizado!", Customer.databaseTable);
+        
+        return this.newInstanceFromDataRow(gotten) as Customer;
     }
 
     public async getSingleFromOrganization(conn: Knex) : Promise<Customer>
