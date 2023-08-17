@@ -812,12 +812,12 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   top: 0px;
 }
 
-.z-20 {
-  z-index: 20;
-}
-
 .z-10 {
   z-index: 10;
+}
+
+.z-20 {
+  z-index: 20;
 }
 
 .m-1 {
@@ -947,6 +947,10 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   min-height: 300px;
 }
 
+.w-10 {
+  width: 2.5rem;
+}
+
 .w-5 {
   width: 1.25rem;
 }
@@ -971,6 +975,10 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   width: 1.3rem;
 }
 
+.w-\[calc\(100\%-100px\)\] {
+  width: calc(100% - 100px);
+}
+
 .w-\[calc\(100\%-16px\)\] {
   width: calc(100% - 16px);
 }
@@ -983,12 +991,12 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   width: 100%;
 }
 
-.w-10 {
-  width: 2.5rem;
-}
-
 .max-w-\[1000px\] {
   max-width: 1000px;
+}
+
+.max-w-\[600px\] {
+  max-width: 600px;
 }
 
 .shrink {
@@ -1039,12 +1047,12 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   border-radius: 0.25rem;
 }
 
-.rounded-md {
-  border-radius: 0.375rem;
-}
-
 .rounded-full {
   border-radius: 9999px;
+}
+
+.rounded-md {
+  border-radius: 0.375rem;
 }
 
 .border {
@@ -1153,6 +1161,14 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
 
 .text-base {
   font-size: 1rem;
+}
+
+.text-sm {
+  font-size: 0.8rem;
+}
+
+.text-xl {
+  font-size: 1.5rem;
 }
 
 .font-bold {

@@ -5,6 +5,8 @@
             <%- include('components/ext_label', { props: { label: "Nome", children: `<input type="text" class="w-full" name="custName" required maxlength="140" value="${helperFns.escapeHtml(custObj.get("name"))}" />` } }) %>
             <%- include('components/ext_label', { props: { label: "Ativo", reverse:true, children: `<input type="checkbox" name="chkIsActive" value="1" ${custObj.get('is_active') ? 'checked' : ''} />` }}) %>
             <%- include('components/ext_label', { props: { label: "Minutos disponíveis", children: custObj.get('minutes_available') } }) %>
+            <a class="btn ml-2" href="/page/organizations/distributeminutes?cust_id=<%= custObj.get('id') %>">Adicionar</a>
+            <a class="btn ml-2" href="/page/organizations/seizeminutes?cust_id=<%= custObj.get('id') %>">Remover</a>
             <br/>
             <h3>Alterar dados de log-in</h3>
             <%- include('components/ext_label', { props: { label: "Nome de usuário", children: `<input type="text" name="custUsername" maxlength="140" required value="${helperFns.escapeHtml(custObj.get('username'))}"/>` }}) %>

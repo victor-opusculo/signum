@@ -1,0 +1,12 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+    <form method="post" action="/post/customers_helpdesk_createcall">
+        <%- include('components/ext_label', { props: { label: "Título deste chamado", children: `<input type="text" maxlength="200" class="w-full" required name="hdcTitle" />` }}) %>
+        <%- include('components/ext_label', { props: { label: "Primeira mensagem", lineBreak: true, children: `<textarea rows="8" class="w-full" maxlength="5000" name="hdmMessage"></textarea>` }}) %>
+
+        <div class="text-center mt-2">
+            <button type="submit" class="btn">Enviar</button>
+        </div>
+    </form>
+</div>

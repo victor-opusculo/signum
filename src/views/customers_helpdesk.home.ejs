@@ -1,0 +1,34 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<div class="frame">
+    <%- include('components/search_bar') %>
+
+    <div class="text-right my-2">
+        Ordem de exibição:
+        <a class="link" href="<%= helperFns.genUrl('/page/customers_helpdesk/home', helperFns.overwriteQuery(request, 'order_by', 'title')) %>">Título</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/customers_helpdesk/home', helperFns.overwriteQuery(request, 'order_by', 'status')) %>">Status</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/customers_helpdesk/home', helperFns.overwriteQuery(request, 'order_by', 'date')) %>">Data de abertura</a>
+    </div>
+
+    <div class="my-4">
+        <a class="btn" href="/page/customers_helpdesk/createcall">Abrir novo chamado</a>
+    </div>
+    
+    <%- include('components/data_grid', { props:
+    {
+        detailsUrl: '/page/customers_helpdesk/view/{param}',
+        useHeaders: true,
+        columnsToHide: ['id'],
+        data: calls
+    }}) %>
+
+    <%- include('components/paginator', { props: 
+    {
+        pageNumber: Number(request.query.page_num) || 1,
+        totalItems: callCount,
+        numberResultsOnPage: itemsOnPage,
+        basePath: '/page/customers_helpdesk/home',
+        baseQueryString: request.query
+    }}) %>
+
+</div>

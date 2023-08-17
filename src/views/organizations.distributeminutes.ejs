@@ -1,0 +1,25 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+<% function generateCustomerList()
+{
+    let output = '<select name="selDestCustomerId" required>';
+    output += '<option disabled selected value="">-- Selecione --</option>';
+    for (const cust of allCustomers)
+        output += `<option value="${cust.get("id")}" ${preselCustomerId && preselCustomerId === Number(cust.get("id"))? 'selected' : '' } >${helperFns.escapeHtml(cust.get("name"))} (${helperFns.escapeHtml(cust.get("username"))}) (Saldo atual de ${cust.get("minutes_available")}) </option>`;
+    output += '</select>';
+    return output;
+} 
+%>
+<% if (orgObj && allCustomers) { %>
+<div class="frame">
+    <form method="post" action="/post/organizations_distributeminutes">
+        <span class="font-bold">Esta organização tem <%= orgObj.get("minutes_available") %> minutos disponíveis para distribuir.</span>
+        <br/>
+        <%- include('components/ext_label', { props: { label: "Cliente favorecido", children: generateCustomerList()}}) %>
+        <%- include('components/ext_label', { props: { label: "Quantidade a transferir", children: `<input type="number" name="numMinutesToTransfer" required min="1" max="${orgObj.get("minutes_available")}" />`}}) %>
+
+        <div class="text-center">
+            <button type="submit" class="btn">Transferir</button>
+        </div>
+    </form>
+</div>
+<% } %>

@@ -1,0 +1,24 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<% if (call) { %>
+<div class="frame">
+    <span class="font-bold block text-center text-xl py-4"><%= call.get("title") %></span>
+    <div class="text-right text-sm my-2">Chamado aberto em: <%= call.get("created_at_dt")?.toLocaleString() %></div>
+    <div class="text-right text-sm my-2">Status: <%= call.translateStatus() %></div>
+    <hr/>
+    <% for (const message of call.messages) { %>
+        <div class="font-bold my-2"><%= message.get("sender_name") + (message.get("sender_type") === "support" ? '(Suporte Signum)' : '') %></div>
+        <article class="block whitespace-pre-line"><%= message.get("message") %></article>
+        <div class="text-right text-sm my-2">Enviado em: <%= message.get("sent_at")?.toLocaleString() %></div>
+        <hr/>
+    <% } %>
+
+    <div class="text-center">
+        <% if (call.isOpen) { %>
+            <a class="btn" href="/page/customers_helpdesk/postmessage/<%= call.get("id") %>">Responder</a>
+        <% } else { %>
+            <span class="font-bold">Chamado fechado!</span>
+        <% } %>
+    </div>
+</div>
+<% } %>

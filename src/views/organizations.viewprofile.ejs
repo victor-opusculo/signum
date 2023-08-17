@@ -11,12 +11,14 @@
     <% } %>
 
     <%- include('components/ext_label', { props: { label: "Nome", labelBold:true, children: helperFns.escapeHtml(orgObj.get("name") ?? '') }}) %>
-    <%- include('components/ext_label', { props: { label: "Email", labelBold:true, children: helperFns.escapeHtml(orgObj.get("email") ?? '')}}) %>
+    <%- include('components/ext_label', { props: { label: "E-mail", labelBold:true, children: helperFns.escapeHtml(orgObj.get("email") ?? '')}}) %>
 
     <% const otherInfos = orgObj.decodeOtherInfos(); %>
     <% for (const info of otherInfos) { %>
         <%- include('components/ext_label', { props: { label: info.label, labelBold:true, children: helperFns.escapeHtml(info.value ?? '')}}) %>
     <% } %>
+
+    <%- include('components/ext_label', { props: { label: "Minutos não distribuídos", labelBold:true, children: helperFns.escapeHtml(String(orgObj.get("minutes_available"))) + ' (só você vê este dado)' }}) %>
 
 </div>
 

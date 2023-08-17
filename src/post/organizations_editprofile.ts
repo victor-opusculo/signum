@@ -34,6 +34,9 @@ export function organizations_editprofile(request: Request, response: Response, 
             org = await new Organization({ id: intrId }).getSingle(connection()) as Organization;
             org.fillPropertiesFromFormInput(data);
             
+            if (await org.existsEmailOnOther(connection()))
+                throw new Error("E-mail já existente em outra organização!");
+
             if (data.txtOldPassword && data.txtNewPassword)
             {
                 if (!await org.checkPassword(data.txtOldPassword))

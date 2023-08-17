@@ -1,0 +1,16 @@
+<%- include('fragments/logged_customer_bar', { customerName, customerMinutes }) %>
+
+<% if (call && call.isOpen) { %>
+    <div class="frame">
+        <form method="post" action="/post/customers_helpdesk_postmessage">
+            <%- include('components/ext_label', { props: { label: 'Chamado', labelBold: true, children: `<a class="link" href="/page/customers_helpdesk/view/${call.get("id")}">${helperFns.escapeHtml(call.get("title"))}</a>`}}) %>
+            
+            <%- include('components/ext_label', { props: { label: 'Mensagem', lineBreak: true, children: `<textarea name="hdmMessage" rows="8" class="w-full" maxlength="5000" required></textarea>` }}) %>
+        
+            <div class="text-center mt-2">
+                <input type="hidden" name="hdmCallId" value="<%= call.get("id") %>" />
+                <button type="submit" class="btn">Enviar</button>
+            </div>
+        </form>
+    </div>
+<% } %>
