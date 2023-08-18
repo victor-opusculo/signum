@@ -9,7 +9,7 @@ export class homepage extends BaseController
     public home()
     {
         this._pageTitle = "Signum Platform";
-        this._pageSubtitle = "Bem vindo à Singum Platform!";
+        this._pageSubtitle = "Bem vindo à Signum Platform!";
 
         const { sessionList, intrWaitingList, custWaitingList } = get();
 
