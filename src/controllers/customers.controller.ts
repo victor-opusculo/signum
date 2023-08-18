@@ -147,5 +147,6 @@ export class customers extends BaseController
         const qrCodeUrlData = await QRCode.toDataURL(qrCodeContent);
 
         this.pageData.qrCodeUrlData = qrCodeUrlData;
+        this.pageData.guestSessionUrl = qrCodeContent;
     }
 }

@@ -151,7 +151,9 @@ function addCallInterpreterButton()
     button.type = 'button';
     button.onclick = () =>
     {
-        document.getElementById('btnCallNewInterpreter').remove();
+        const btn = document.getElementById('btnCallNewInterpreter');
+        btn.disabled = true;
+        btn.innerHTML = `${spinner}<br/>Procurando um intérprete disponível. Aguarde.`;
         socket.emit('customerWaiting', roomID);
     }
 

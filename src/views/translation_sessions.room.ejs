@@ -26,6 +26,7 @@
   var screenName = "<%= userData.screenName %>"
   var userId = "<%= userData.id || 0 %>";
   var relatedCustomerId = "<%= userData.relatedCustomerId ?? '' %>";
+  var spinner = `<%- include('components/spinner', { props: { className: 'w-5 h-5 inline-block mb-2 fill-white' }}) %>`;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js" defer></script>
 <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js" defer></script>
