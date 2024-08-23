@@ -8,5 +8,6 @@
 /dist/**/*
 
 .env.local
+.env
 docker-build.ps1
 docker-run.ps1
