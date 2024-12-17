@@ -1,7 +1,11 @@
+import transformDataRows from "../lib/helpers/transformDataRows";
 import { Customer } from "../lib/model/customers/Customer";
 import connection from "../lib/model/database/connection";
 import { Organization } from "../lib/model/organizations/Organization";
+import { TranslationSession } from "../lib/model/translation_sessions/TranslationSession";
 import { BaseController } from "./BaseController";
+import dayjs from "dayjs";
+import "dayjs/locale/pt-br";
 
 export class organizations extends BaseController
 {
@@ -128,5 +132,44 @@ export class organizations extends BaseController
         this.pageData.orgObj = org;
         this.pageData.allCustomers = custs;
         this.pageData.preselCustomerId = preselCustomerId;
+    }
+
+    public async reportsessions()
+    {
+        this._pageTitle = "Signum | Relatório de atendimentos";
+        this._pageSubtitle = "Relatório de atendimentos";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+
+        const custId = this.request.query?.customer_id ? Number(this.request.query?.customer_id) : undefined;
+        const itemsOnpage = 20;
+        const getter = new TranslationSession();
+        const sessionsCount = await getter.getCountFromOrganization(connection(), orgId, custId);
+        const sessions = await getter.getMultipleFromOrganization(connection(), orgId, custId, String(this.request.query.order_by ?? ''), Number.parseInt(String(this.request.query.page_num ?? 1)), itemsOnpage);  
+    
+        await Promise.all(sessions.map(s => s.fetchCustomer(connection())));
+
+        const transformed = transformDataRows(sessions, 
+        {
+            'ID': c => c.get("id"),
+            'Início': c => c.get("begin") ? new Date(c.get("begin")!).toLocaleString() : "***",
+            'Fim': c => c.get("begin") ? new Date(c.get("end")!).toLocaleString() : "***",
+            'Duração': c =>
+            {
+                const begin = dayjs(c.get("begin"), undefined, "pt-br");
+                const end = dayjs(c.get("end"), undefined, "pt-br");
+
+                return end.diff(begin, "minutes") + " min";
+            },
+            'Cliente': c => `${c.customer?.get("name")} (${c.customer?.get("username")}) ID: ${c.get("customer_id")}`,
+            'Visitantes': c => c.get("guests") ?? 0,
+            'Nota de avaliação': c => (c.get("evaluation_points") ?? '***') + " / 10"
+        });
+
+        this.pageData.sessionsData = transformed;
+        this.pageData.sessionsCount = sessionsCount;
+        this.pageData.itemsOnpage = itemsOnpage;
+    
     }
 }

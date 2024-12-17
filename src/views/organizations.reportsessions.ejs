@@ -1,0 +1,36 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+
+<div class="frame">
+
+    <form method="get">
+        <label>Usuário ID: <input type="number" min="1" step="1" name="customer_id" value="<%= request.query.customer_id ?? '' %>"/></label>
+        <button type="submit" class="btn ml-2">Filtrar</button>
+    </form>
+
+    <div class="text-right my-2">
+        Ordem de exibição:
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations/reportsessions', helperFns.overwriteQuery(request, 'order_by', 'id')) %>">ID</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations/reportsessions', helperFns.overwriteQuery(request, 'order_by', 'name')) %>">Nome</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations/reportsessions', helperFns.overwriteQuery(request, 'order_by', 'begin')) %>">Data de início</a>
+        <a class="link" href="<%= helperFns.genUrl('/page/organizations/reportsessions', helperFns.overwriteQuery(request, 'order_by', 'evaluation_points')) %>">Pontuação de avaliação</a>
+    </div>
+
+    <%- include('components/data_grid', { props:
+    {
+        useHeaders: true,
+        data: sessionsData
+    }}) %>
+
+    <%- include('components/paginator', { props: 
+    {
+        pageNumber: Number(request.query.page_num) || 1,
+        totalItems: sessionsCount,
+        numberResultsOnPage: itemsOnpage,
+        basePath: '/page/organizations/reportsessions',
+        baseQueryString: request.query
+    }}) %>
+
+    <div class="mt-2 text-right">
+        <a class="btn" href="<%= helperFns.genUrl('/script/report_translation_sessions', request.query) %>">Exportar para CSV</a>
+    </div>
+</div>
