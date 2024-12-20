@@ -352,7 +352,7 @@ async function switchCameraOrScreenShare(e)
         }
         catch (err)
         {
-            e.target.checked = false;
+            console.error(err);
         }
     }
 }
