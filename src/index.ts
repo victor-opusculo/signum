@@ -9,8 +9,10 @@ import postScriptApplier from './lib/middlewares/postScriptApplier.js';
 import scriptApplier from './lib/middlewares/scriptApplier.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv-flow';
+import * as fs from "node:fs";
 import { verifyTokens } from './lib/helpers/verifyTokensForSocket.js';
 import { register } from './lib/helpers/statisticsManager.js';
+import { Readable } from 'node:stream';
 
 dotenv.config();
 
@@ -67,13 +69,21 @@ function createRoomData(roomId: string, customerId: number|null, interpreterId: 
             guests: createdByGuest ? [ peerId ] : [],
             beginTime: new Date(),
             endTime: undefined,
-            createdByGuest: createdByGuest
+            createdByGuest: createdByGuest,
+            chatHistory: []
         });
     }
 }
 
 const interpretersWaitingIds: string[] = [];
 const customersWaitingRoomIds: string[] = [];
+
+function saveChatMessage(roomId: string, sender: string, message: string, datetimeUTC: string)
+{
+    const room = roomsData.find(r => r.id === roomId);
+    if (room)
+        room.chatHistory.push({ sender, datetime: datetimeUTC, message });
+}
 
 function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId: number|null, peerId: string, screenName: string)
 {
@@ -97,30 +107,39 @@ function onUserDisconnect(socket: Socket, roomId: string, type: string, signumId
                 {
                     room.beginTime = undefined;
                     room.interpreterId = [];
-                }).catch(console.log);
+                })
+                .catch(console.log);
             }
         }
     }
-    //    io.in(roomId).disconnectSockets();
+
+    saveChatMessage(roomId, screenName, `Desconectou-se.`, new Date().toISOString());
 
     let room = io.sockets.adapter.rooms.get(roomId);
     if (!room)
     {
         const room = roomsData.find(r => r.id === roomId);
         if (room)
+        {
+            room.recordFileStream?.end();
+            room.recordFileStream?.close();
+            room.recordFileStream = undefined;
             roomsData.splice(roomsData.indexOf(room), 1);
+        }
     }
 }
 
 function onNewChatMessage(socket: Socket, roomId: string, screenName: string, message: string, datetimeUTC: string)
 {
     socket.broadcast.to(roomId).emit('chatMessageReceived', screenName, message, datetimeUTC);
+    saveChatMessage(roomId, screenName, message, datetimeUTC);
 }
 
 function onScreenNameChange(socket: Socket, screenNameRef: { current: string }, videoDivId: string, roomId: string, oldName: string, newName: string)
 {
     screenNameRef.current = newName;
     socket.broadcast.to(roomId).emit('screenNameChanged', videoDivId, oldName, newName);
+    saveChatMessage(roomId, oldName, `Alterou o nome para "${newName}".`, new Date().toISOString());
 }
 
 io.on("connection", socket =>
@@ -159,7 +178,7 @@ io.on("connection", socket =>
         }
     })
 
-    socket.on("newUser", async (type, signumId, token, peerId, roomId, screenName, videoDivId, customerIdRelated) =>
+    socket.on("newUser", async (type, signumId, token, peerId, roomId, screenName, videoDivId, customerIdRelated, callback) =>
     {
         let screenNameRef = { current: screenName };
         if (!io.sockets.adapter.rooms.has(roomId) && type !== 'interpreter' && type !== 'customer' && !customerIdRelated)
@@ -194,16 +213,33 @@ io.on("connection", socket =>
             socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current ) );
             socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
             socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
-            /*}
-            else
-            {
-                createRoomData(roomId, null, null, peerId);
-                socket.join(roomId);
-                socket.broadcast.to(roomId).emit('userJoined', 'guest', null, peerId, screenNameRef.current, videoDivId);
-                socket.on('disconnect', () => onUserDisconnect(socket, roomId, type, signumId, peerId, screenNameRef.current) );
-                socket.on('screenNameChange', (oldName, newName) => onScreenNameChange(socket, screenNameRef, videoDivId, roomId, oldName, newName)); 
-                socket.on('newChatMessage', (userScreenName, message, datetimeUTC) => onNewChatMessage(socket, roomId, userScreenName, message, datetimeUTC));
-            }*/
+        }
+
+        saveChatMessage(roomId, screenName, `Acabou de entrar.`, new Date().toISOString());
+        callback();
+    });
+
+    socket.on("askForRecord", (roomId, ack) =>
+    {
+        const room = roomsData.find(r => r.id === roomId);
+        const outputFile = `./public/uploads/session_recordings/${roomId}.webm`;
+        if (room && !room.recordFileStream && !fs.existsSync(outputFile))
+        {
+            room.recordFileStream = fs.createWriteStream(outputFile);
+            ack(true);
+        }
+        else
+            ack(false);
+    });
+
+    socket.on("recordStream", async (roomId, chunk: Buffer) =>
+    {
+        const blob = new Blob([chunk], { type: 'video/webm' });
+        const room = roomsData.find(r => r.id === roomId);
+        if (room)
+        {
+            const buff = Buffer.from(await blob.arrayBuffer());
+            room.recordFileStream?.write(buff);
         }
     });
 });

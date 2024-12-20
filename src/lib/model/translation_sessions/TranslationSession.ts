@@ -12,6 +12,15 @@ export interface TranslationSessionProperties extends PropertiesGroup
     customer_id: DataProperty<number>;
     evaluation_points: DataProperty<number>;
     guests: DataProperty<number>;
+    room_uuid: DataProperty<string|null>;
+    chat_history: DataProperty<string>;
+}
+
+export interface ChatHistoryEntry
+{
+    sender: string;
+    message: string;
+    datetime: string;
 }
 
 type TranslationSessionAttributes = EntityAttributes<TranslationSessionProperties>;
@@ -28,7 +37,9 @@ export class TranslationSession extends DataEntity<TranslationSessionProperties>
             interpreter_id: new DataProperty(),
             customer_id: new DataProperty(),
             evaluation_points: new DataProperty(),
-            guests: new DataProperty()
+            guests: new DataProperty(),
+            room_uuid: new DataProperty(),
+            chat_history: new DataProperty({ defaultValue: '[]' })
         }, initialValues);
     }
 
@@ -96,5 +107,18 @@ export class TranslationSession extends DataEntity<TranslationSessionProperties>
     {
         this.#customer = await new Customer({ id: this.get("customer_id") }).getSingle(conn) as Customer;
         return this;
+    }
+
+    public decodeChatHistory() : ChatHistoryEntry[]
+    {
+        if (this.get("chat_history"))
+            return JSON.parse(this.get("chat_history") || '[]') as ChatHistoryEntry[];
+        else
+            return [];
+    }
+
+    public encodeChatHistory(history: ChatHistoryEntry[]) : void
+    {
+        this.set("chat_history", JSON.stringify(history));
     }
 }

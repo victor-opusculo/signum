@@ -1,11 +1,15 @@
+import path from "node:path";
+import helperFns from "../lib/helpers/helperFns";
 import transformDataRows from "../lib/helpers/transformDataRows";
 import { Customer } from "../lib/model/customers/Customer";
 import connection from "../lib/model/database/connection";
 import { Organization } from "../lib/model/organizations/Organization";
-import { TranslationSession } from "../lib/model/translation_sessions/TranslationSession";
+import { ChatHistoryEntry, TranslationSession } from "../lib/model/translation_sessions/TranslationSession";
 import { BaseController } from "./BaseController";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
+import * as fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export class organizations extends BaseController
 {
@@ -171,5 +175,48 @@ export class organizations extends BaseController
         this.pageData.sessionsCount = sessionsCount;
         this.pageData.itemsOnpage = itemsOnpage;
     
+    }
+
+    public async reportsessionsview()
+    {
+        this._pageTitle = "Signum | Ver atendimentos";
+        this._pageSubtitle = "Ver atendimento";
+
+        const [ orgId, orgName ] = await Organization.checkLoginOnPage(connection(), this.request, this.response);
+        this.pageData.organizationName = orgName;
+
+        const sessId = this.request.params.id ? Number(this.request.params.id) : 0;
+        let session: TranslationSession|null = null;
+        let duration: number = 0;
+        let videoUrl: string|null = null;
+        let chatHistory: ChatHistoryEntry[] = [];
+        try
+        {
+            session = await new TranslationSession({ id: sessId }).getSingle(connection()) as TranslationSession;
+            await session.fetchCustomer(connection());
+            duration = (c =>
+            {
+                const begin = dayjs(c.get("begin"), undefined, "pt-br");
+                const end = dayjs(c.get("end"), undefined, "pt-br");
+
+                return end.diff(begin, "minutes");
+            })(session);
+
+            const roomUuid = session.get("room_uuid");
+            if (roomUuid && fs.existsSync(`${__dirname}/../../public/uploads/session_recordings/${roomUuid}.webm`))
+                videoUrl = `/uploads/session_recordings/${roomUuid}.webm`;
+
+            chatHistory = session.decodeChatHistory();
+        }
+        catch (err)
+        {
+            this._messages.push(err instanceof Error ? err.message : String(err));
+        }
+
+        this.pageData.sessionObj = session;
+        this.pageData.duration = duration;
+        this.pageData.customerObj = session?.customer;
+        this.pageData.videoUrl = videoUrl;
+        this.pageData.chatHistory = chatHistory;
     }
 }

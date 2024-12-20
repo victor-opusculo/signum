@@ -788,6 +788,10 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
   position: fixed !important;
 }
 
+.fixed {
+  position: fixed;
+}
+
 .absolute {
   position: absolute;
 }
@@ -1197,6 +1201,10 @@ input[type='text'], input[type='password'], input[type='search'], input[type='nu
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+
+.filter {
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 * {

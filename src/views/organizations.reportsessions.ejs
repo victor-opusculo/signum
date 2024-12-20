@@ -18,7 +18,9 @@
     <%- include('components/data_grid', { props:
     {
         useHeaders: true,
-        data: sessionsData
+        data: sessionsData,
+        rudButtonsParamName: 'ID',
+        detailsUrl: helperFns.genUrl('/page/organizations/reportsessionsview/{param}')
     }}) %>
 
     <%- include('components/paginator', { props: 

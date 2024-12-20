@@ -1,3 +1,4 @@
+import { WriteStream } from 'node:fs';
 import { Customer } from '../model/customers/Customer';
 import connection from '../model/database/connection';
 import { TranslationSession } from '../model/translation_sessions/TranslationSession';
@@ -12,7 +13,9 @@ export type SessionData =
     guests: string[],
     beginTime: Date|undefined,
     endTime?: Date|undefined,
-    createdByGuest: boolean
+    createdByGuest: boolean,
+    recordFileStream?: WriteStream,
+    chatHistory: { sender: string, message: string, datetime: string }[]
 };
 
 export async function saveTranslationSessionData(data: SessionData)
@@ -28,6 +31,8 @@ export async function saveTranslationSessionData(data: SessionData)
     session.set('end', data.endTime ?? new Date());
     session.set('guests', data.guests.length);
     session.set('evaluation_points', null);
+    session.set('room_uuid', data.id);
+    session.encodeChatHistory(data.chatHistory);
 
     const result = await session.save(connection());
 

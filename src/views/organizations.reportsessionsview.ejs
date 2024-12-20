@@ -1,0 +1,32 @@
+<%- include('fragments/logged_organization_bar', { organizationName }) %>
+
+<% if (sessionObj) { %>
+<div class="frame">
+    <%- include('components/ext_label', { props: { labelBold: true, label: "ID", children: helperFns.escapeHtml(sessionObj.get("id")) }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Início", children: helperFns.escapeHtml(sessionObj.get("begin") ? new Date(sessionObj.get("begin"))?.toLocaleString() : "***" ) }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Fim", children: helperFns.escapeHtml(sessionObj.get("end") ? new Date(sessionObj.get("end"))?.toLocaleString() : "***" ) }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Duração", children: helperFns.escapeHtml(duration + " min") }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Cliente", children: 
+        `<a class="link" href="/page/organizations_mcustomers/edit/${customerObj?.get("id")}">${helperFns.escapeHtml(customerObj?.get("name") ?? "***")}</a>`
+    }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Visitantes", children: helperFns.escapeHtml(String(sessionObj.get("guests"))) }}) %>
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Nota de avaliação", children: helperFns.escapeHtml(String(sessionObj.get("evaluation_points") ?? "***") + " / 10") }}) %>
+
+    <%- include('components/ext_label', { props: { labelBold: true, label: "Gravação em vídeo", lineBreak: true, children: 
+        videoUrl ? `<video class="w-full" controls><source src="${videoUrl}" type="video/webm"/></video>` : "Não disponível"
+    }}) %>
+
+    <div class="ml-2">
+        <label class="font-bold">
+            Histórico do Chat:
+        </label>
+        <ul class="list-disc ml-4">
+            <% for (const { sender, message, datetime } of chatHistory) { %>
+                <li>
+                    (<%= new Date(datetime).toLocaleString() %>) <span class="font-bold"><%= sender %>:</span> <%= message %>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+</div>
+<% } %>

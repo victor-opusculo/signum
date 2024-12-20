@@ -10,11 +10,60 @@ let streamMode = 'camera';
 var videoGrid = document.getElementById('videoDiv')
 var myvideo = document.createElement('video');
 myvideo.muted = true;
+
+let streamMixer;
+let recorder;
+
 const peerConnections = {}
+
+const myStreamConstraints = 
+{
+    audio: { sampleRate: 128 },
+    video: { height: { max: 720 }, frameRate: 25 }
+};
+
+function beginRecording(initialStream)
+{
+    try
+    {
+        if (!recorder)
+        {
+            if (!streamMixer)
+            {
+                streamMixer = new MultiStreamsMixer([ initialStream ]);
+                streamMixer.frameInterval = 25;
+                streamMixer.startDrawingFrames();
+            }
+            recorder = new MediaRecorder(streamMixer.getMixedStream(), { mimeType: 'video/webm;codecs=avc1' });
+
+            recorder.ondataavailable = event =>
+            {
+                socket.emit("recordStream", roomID, event.data)
+            };
+
+            recorder.start(1000);
+
+            window.addEventListener("beforeunload", e =>
+            {
+                recorder.stop();
+            });
+        }
+    }
+    catch(err) { console.error(err); }
+}
+
+function addToRecording(stream)
+{
+    if (streamMixer)
+    {
+        streamMixer.appendStreams([ stream ]);
+    }
+}
 
 async function enableMedia()
 {
-    const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+    
+    const stream = await navigator.mediaDevices.getUserMedia(myStreamConstraints);
     myVideoStream = stream;
 
     addVideo(myvideo, stream, screenName, myVideoDivId);
@@ -23,7 +72,14 @@ async function enableMedia()
 
 function afterEnableMedia(stream)
 {
-    peer = new Peer();
+    peer = new Peer(
+    {
+        config: {'iceServers': [
+          { url: 'stun:stun.l.google.com:19302' },
+          { url: 'stun:stun1.l.google.com:19302' },
+          { url: 'stun:stun.stunprotocol.org:3478' }
+        ]}
+    });
     peer.on('call' , call=>
     {
         const vid = document.createElement('video');
@@ -37,7 +93,9 @@ function afterEnableMedia(stream)
             {
                 id = userStream.id;
                 addVideo(vid , userStream, call.metadata?.userScreenName, call.metadata?.videoDivId);
+                addToRecording(userStream);
             }
+
         })
         call.on('error' , (err)=>{
           alert(err)
@@ -56,7 +114,14 @@ function afterEnableMedia(stream)
         myPeerId = peerId;
         const userSignumId = Number(userId) || null; 
         const token = userType === 'interpreter' ? Cookies.get('interpreterToken') : (userType === 'customer' ? Cookies.get('customerToken') : null);
-        socket.emit("newUser", userType, userSignumId, token, peerId, roomID, screenName, myVideoDivId, relatedCustomerId || null);
+        socket.emit("newUser", userType, userSignumId, token, peerId, roomID, screenName, myVideoDivId, relatedCustomerId || null, () =>
+        {
+            socket.emit("askForRecord", roomID, response => 
+            {
+                if (response) 
+                    beginRecording(stream);
+            });
+        });
     });
 
     peer.on('error' , (err)=>{
@@ -88,6 +153,7 @@ socket.on('userJoined' , (type, signumId, peerId, userScreenName, videoDivId)=>
       {
         id = userStream.id;
         addVideo(vid , userStream, userScreenName, videoDivId);
+        addToRecording(userStream);
       }
   })
   call.on('close' , ()=>
@@ -113,8 +179,6 @@ socket.on('userDisconnect' , (type, signumId, peerId, userScreenName)=>
 
 socket.on('sessionSurvey', sessId =>
 {
-    console.log(sessId, 'aaa');
-
     if (((userType === 'guest' && relatedCustomerId) || userType === 'customer') && sessId)
     {
         document.getElementById('divSurvey').classList.add('flex');
@@ -184,12 +248,21 @@ function addVideo(video, stream, userScreenName, videoDivId)
     div.appendChild(nameSpan);
 
     videoGrid.append(div);
+
+    
 }
 
 function removeVideo(videoElement)
 {
     const div = videoElement.parentNode;
     div.remove();
+
+    if (streamMixer)
+    {
+        const videos = document.querySelectorAll('#videoDiv video');
+        const streams = Array.from(videos).filter(v => v !== videoElement).map(v => v.srcObject);
+        streamMixer.resetVideoStreams(streams);
+    }
 }
 
 function sendRoomNotificationInChat(message)
@@ -237,8 +310,9 @@ async function switchCameraOrScreenShare(e)
 
     if (streamMode === 'camera')
     {
-        const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+        const stream = await navigator.mediaDevices.getUserMedia(myStreamConstraints);
         myVideoStream = stream;
+        
         myVideoStream.getVideoTracks().forEach(track => track.enabled = enableVideo);
         myVideoStream.getAudioTracks().forEach(track => track.enabled = enableAudio);
 
@@ -248,7 +322,13 @@ async function switchCameraOrScreenShare(e)
             call.peerConnection.getSenders()[1].replaceTrack(stream.getTracks()[1]);
         }
 
+        const videos = document.querySelectorAll('#videoDiv video');
+        const oldStream = myvideo.srcObject;
+        const streams = Array.from(videos).map(v => v.srcObject).filter(s => s !== oldStream);
+        streams.push(stream);
         myvideo.srcObject = stream;
+        streamMixer.resetVideoStreams(streams);
+
     }
     else
     {
@@ -263,7 +343,12 @@ async function switchCameraOrScreenShare(e)
             for (const call of Object.values(peerConnections))
                 call.peerConnection.getSenders()[1].replaceTrack(stream.getTracks()[0]);
 
-            myvideo.srcObject = stream;  
+            const videos = document.querySelectorAll('#videoDiv video');
+            const oldStream = myvideo.srcObject;
+            const streams = Array.from(videos).map(v => v.srcObject).filter(s => s !== oldStream);
+            streams.push(stream);
+            myvideo.srcObject = stream;
+            streamMixer.resetVideoStreams(streams);
         }
         catch (err)
         {
