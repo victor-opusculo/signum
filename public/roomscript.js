@@ -327,8 +327,7 @@ async function switchCameraOrScreenShare(e)
         const streams = Array.from(videos).map(v => v.srcObject).filter(s => s !== oldStream);
         streams.push(stream);
         myvideo.srcObject = stream;
-        streamMixer.resetVideoStreams(streams);
-
+        streamMixer?.resetVideoStreams(streams);
     }
     else
     {
@@ -348,7 +347,7 @@ async function switchCameraOrScreenShare(e)
             const streams = Array.from(videos).map(v => v.srcObject).filter(s => s !== oldStream);
             streams.push(stream);
             myvideo.srcObject = stream;
-            streamMixer.resetVideoStreams(streams);
+            streamMixer?.resetVideoStreams(streams);
         }
         catch (err)
         {
