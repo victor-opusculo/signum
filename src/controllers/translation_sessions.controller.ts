@@ -1,5 +1,6 @@
 import { Customer } from "../lib/model/customers/Customer";
 import connection from "../lib/model/database/connection";
+import { CustomerInactive } from "../lib/model/exceptions/CustomerInactive";
 import { CustomerZeroMinutes } from "../lib/model/exceptions/CustomerZeroMinutes";
 import { RedirectTo } from "../lib/model/exceptions/RedirectTo";
 import { Interpreter } from "../lib/model/interpreters/Interpreter";
@@ -46,6 +47,10 @@ export class translation_sessions extends BaseController
             { 
                 customerPl = await jwt.verify(customerToken, process.env.SIGNUM_CUSTOMERS_JWT_SECRET as string); 
                 const cust = await new Customer({ id: customerPl?.customerId }).getSingle(connection()) as Customer;
+
+                if (!Number(cust.get("is_active")))
+                    throw new CustomerInactive(`Cliente inativo. Acesso negado!`);
+
                 screenName = cust.get("name") ?? '(sem nome)';
                 
                 if (!cust.hasMinutesAvailable())
@@ -56,6 +61,8 @@ export class translation_sessions extends BaseController
                 customerPl = null; 
                 if (err instanceof CustomerZeroMinutes)
                     throw err;
+                else if (err instanceof CustomerInactive)
+                    throw new RedirectTo(`/page/homepage/home?messages=${err.message}!`);
             }
         }
         
@@ -88,12 +95,24 @@ export class translation_sessions extends BaseController
 
     public async guestsession()
     {
-        const relatedCustomerId = Number(this.request.params.id ?? '***');
-        const custExists = await new Customer({ id: relatedCustomerId }).existsId(connection());
+        try
+        {
+                const relatedCustomerId = Number(this.request.params.id ?? '***');
+                const cust = await new Customer({ id: relatedCustomerId }).getSingle(connection());
 
-        if (custExists)
-            throw new RedirectTo(`/page/translation_sessions/room/${uuidv4()}?related_customer_id=${relatedCustomerId}`);
-        else
-            throw new RedirectTo(`/page/homepage/home?messages=Cliente informado não localizado`);
+                if (cust && Number(cust.get("is_active")))
+                    throw new RedirectTo(`/page/translation_sessions/room/${uuidv4()}?related_customer_id=${relatedCustomerId}`);
+                else if (cust && !Number(cust.get("is_active")))
+                    throw new RedirectTo(`/page/homepage/home?messages=Cliente inativo. Acesso negado!`);
+                else
+                    throw new RedirectTo(`/page/homepage/home?messages=Cliente informado não localizado`);
+        }
+        catch (err)
+        {
+            if (err instanceof RedirectTo)
+                throw err;
+            else
+                throw new RedirectTo(`/page/homepage/home?messages=${err instanceof Error ? err.message : String(err)}`);
+        }
     }
 }

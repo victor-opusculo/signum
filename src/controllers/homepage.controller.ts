@@ -8,8 +8,8 @@ export class homepage extends BaseController
 
     public home()
     {
-        this._pageTitle = "Signum Platform";
-        this._pageSubtitle = "Bem vindo à Signum Platform!";
+        this._pageTitle = "Central de Libras";
+        this._pageSubtitle = "Bem-vindo(a) à Central de Libras!";
 
         const { sessionList, intrWaitingList, custWaitingList } = get();
 
