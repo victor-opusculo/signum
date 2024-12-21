@@ -76,8 +76,7 @@ function afterEnableMedia(stream)
     {
         config: {'iceServers': [
           { url: 'stun:stun.l.google.com:19302' },
-          { url: 'stun:stun1.l.google.com:19302' },
-          { url: 'stun:stun.stunprotocol.org:3478' }
+          { url: 'stun:stun1.l.google.com:19302' }
         ]}
     });
     peer.on('call' , call=>

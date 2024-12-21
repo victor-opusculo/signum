@@ -12,7 +12,7 @@ import dotenv from 'dotenv-flow';
 import * as fs from "node:fs";
 import { verifyTokens } from './lib/helpers/verifyTokensForSocket.js';
 import { register } from './lib/helpers/statisticsManager.js';
-import { Readable } from 'node:stream';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -33,8 +33,9 @@ app.use('/post/:scriptName', postScriptApplier);
 app.use('/script/:scriptName', scriptApplier);
 
 app.get('/', (req, res) => res.redirect('/page/homepage'));
+app.get('/page', (req, res) => res.redirect('/page/homepage'));
 
-//app.get('/:room', (req, res) => res.render('index', { RoomId: req.params.room }));
+app.get('/room_uuid', (req, res) => res.end(uuidv4()));
 
 const roomsData: SessionData[] = [];
 
